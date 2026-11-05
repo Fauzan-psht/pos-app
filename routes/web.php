@@ -5,7 +5,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\PurchaseController; // <-- Tambahan untuk Stok Masuk
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SaleController; // <-- Tambahan untuk Kasir & Riwayat
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::resource('suppliers', SupplierController::class)->except('show');
     
-    // Route Stok Masuk (Hanya index, create, store, show. Tidak ada edit/delete)
+    // Route Stok Masuk (Hanya index, create, store, show)
     Route::resource('purchases', PurchaseController::class)->only(['index', 'create', 'store', 'show']);
+
+    // Route Kasir & Riwayat Transaksi (Hanya index, create, store, show)
+    Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'show']);
 });

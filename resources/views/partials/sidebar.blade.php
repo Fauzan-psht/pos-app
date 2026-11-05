@@ -35,10 +35,23 @@
                 </a>
             </li>
 
-            {{-- Menu Stok Masuk (Sudah diupdate) --}}
             <li class="nav-item mb-2">
                 <a href="{{ route('purchases.index') }}" class="nav-link text-white {{ request()->routeIs('purchases.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-cart-plus me-2"></i> Stok Masuk
+                </a>
+            </li>
+
+            {{-- Menu Kasir (Admin) --}}
+            <li class="nav-item mb-2">
+                <a href="{{ route('sales.create') }}" class="nav-link text-white {{ request()->routeIs('sales.create') ? 'bg-secondary rounded' : '' }}">
+                    <i class="bi bi-cart me-2"></i> Kasir
+                </a>
+            </li>
+
+            {{-- Menu Riwayat (Admin) --}}
+            <li class="nav-item mb-2">
+                <a href="{{ route('sales.index') }}" class="nav-link text-white {{ request()->routeIs('sales.index') ? 'bg-secondary rounded' : '' }}">
+                    <i class="bi bi-clock-history me-2"></i> Riwayat
                 </a>
             </li>
 
@@ -67,13 +80,16 @@
                 </a>
             </li>
             
+            {{-- Menu Kasir (Kasir) --}}
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('sales.create') }}" class="nav-link text-white {{ request()->routeIs('sales.create') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-cart me-2"></i> Kasir
                 </a>
             </li>
+
+            {{-- Menu Riwayat (Kasir) --}}
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('sales.index') }}" class="nav-link text-white {{ request()->routeIs('sales.index') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-clock-history me-2"></i> Riwayat
                 </a>
             </li>
