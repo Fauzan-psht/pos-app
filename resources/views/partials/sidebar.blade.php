@@ -55,18 +55,23 @@
                 </a>
             </li>
 
+            {{-- Menu Laporan (Sudah diupdate) --}}
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('reports.index') }}" class="nav-link text-white {{ request()->routeIs('reports.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-file-earmark-bar-graph me-2"></i> Laporan
                 </a>
             </li>
+
+            {{-- Menu Users (Sudah diupdate) --}}
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('users.index') }}" class="nav-link text-white {{ request()->routeIs('users.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-person-gear me-2"></i> Users
                 </a>
             </li>
+
+            {{-- Menu Pengaturan (Sudah diupdate) --}}
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('settings.index') }}" class="nav-link text-white {{ request()->routeIs('settings.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-gear me-2"></i> Pengaturan
                 </a>
             </li>

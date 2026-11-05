@@ -6,8 +6,11 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
-use App\Http\Controllers\SaleController; // <-- Tambahan untuk Kasir & Riwayat
+use App\Http\Controllers\ReportController; // <-- Tambahan Laporan
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SettingController; // <-- Tambahan Pengaturan
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\UserController; // <-- Tambahan Users
 use Illuminate\Support\Facades\Route;
 
 // Redirect halaman awal ke dashboard
@@ -32,9 +35,19 @@ Route::middleware('auth')->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::resource('suppliers', SupplierController::class)->except('show');
     
-    // Route Stok Masuk (Hanya index, create, store, show)
+    // Route Stok Masuk
     Route::resource('purchases', PurchaseController::class)->only(['index', 'create', 'store', 'show']);
 
-    // Route Kasir & Riwayat Transaksi (Hanya index, create, store, show)
+    // Route Kasir & Riwayat Transaksi
     Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'show']);
+
+    // Route Laporan Penjualan (Hanya Admin)
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // Route Manajemen User (Hanya Admin)
+    Route::resource('users', UserController::class)->except('show');
+
+    // Route Pengaturan Toko (Hanya Admin)
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 });
