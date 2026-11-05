@@ -17,7 +17,6 @@
                 </a>
             </li>
             
-            {{-- Menu Produk sudah dibetulkan href-nya --}}
             <li class="nav-item mb-2">
                 <a href="{{ route('products.index') }}" class="nav-link text-white {{ request()->routeIs('products.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-box me-2"></i> Produk
@@ -25,20 +24,24 @@
             </li>
             
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('customers.index') }}" class="nav-link text-white {{ request()->routeIs('customers.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-people me-2"></i> Pelanggan
                 </a>
             </li>
+
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('suppliers.index') }}" class="nav-link text-white {{ request()->routeIs('suppliers.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-truck me-2"></i> Supplier
                 </a>
             </li>
+
+            {{-- Menu Stok Masuk (Sudah diupdate) --}}
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('purchases.index') }}" class="nav-link text-white {{ request()->routeIs('purchases.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-cart-plus me-2"></i> Stok Masuk
                 </a>
             </li>
+
             <li class="nav-item mb-2">
                 <a href="#" class="nav-link text-white">
                     <i class="bi bi-file-earmark-bar-graph me-2"></i> Laporan
@@ -58,6 +61,12 @@
 
         {{-- MENU KHUSUS KASIR --}}
         @if(auth()->user()->role === 'kasir')
+            <li class="nav-item mb-2">
+                <a href="{{ route('customers.index') }}" class="nav-link text-white {{ request()->routeIs('customers.*') ? 'bg-secondary rounded' : '' }}">
+                    <i class="bi bi-people me-2"></i> Pelanggan
+                </a>
+            </li>
+            
             <li class="nav-item mb-2">
                 <a href="#" class="nav-link text-white">
                     <i class="bi bi-cart me-2"></i> Kasir
