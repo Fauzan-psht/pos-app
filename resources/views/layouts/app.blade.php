@@ -3,50 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS App</title>
+    <title>POS App - @yield('title', 'Dashboard')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
 
-    <div class="d-flex" style="min-height: 100vh;">
-        <!-- Sidebar -->
-        <div class="bg-dark text-white p-3" style="width: 250px;">
-            <h5 class="mb-4">POS App</h5>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a href="{{ route('dashboard') }}" class="nav-link text-white"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                </li>
-                <!-- Menu Admin -->
-                @if(auth()->user()->role === 'admin')
-                    <li class="nav-item">
-                        <a href="#" class="nav-link text-white"><i class="bi bi-tags"></i> Kategori</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link text-white"><i class="bi bi-box"></i> Produk</a>
-                    </li>
-                @endif
-            </ul>
-        </div>
+    <div class="d-flex">
+        <!-- Panggil Sidebar -->
+        @include('partials.sidebar')
 
         <!-- Main Content -->
-        <div class="flex-grow-1">
-            <!-- Navbar -->
-            <nav class="navbar navbar-light bg-white border-bottom px-4">
-                <span class="navbar-text">
-                    Selamat datang, <strong>{{ auth()->user()->name }}</strong> ({{ ucfirst(auth()->user()->role) }})
-                </span>
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button class="btn btn-sm btn-outline-danger">Logout</button>
-                </form>
-            </nav>
+        <div class="flex-grow-1 d-flex flex-column" style="min-height: 100vh; width: calc(100% - 250px);">
+            
+            <!-- Panggil Navbar -->
+            @include('partials.navbar')
 
-            <!-- Konten -->
-            <div class="p-4">
+            <!-- Area Konten -->
+            <div class="p-4 flex-grow-1">
+                <!-- Flash Message -->
                 @if(session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 @endif
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                <!-- Isi Halaman -->
                 @yield('content')
             </div>
         </div>
