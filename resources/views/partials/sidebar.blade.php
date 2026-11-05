@@ -1,23 +1,29 @@
 <div class="bg-dark text-white p-3 d-flex flex-column" style="width: 250px; min-height: 100vh;">
     <h5 class="mb-4 text-center">POS App</h5>
     <ul class="nav flex-column mb-auto">
+        
+        {{-- Menu Dashboard (Semua Role) --}}
         <li class="nav-item mb-2">
             <a href="{{ route('dashboard') }}" class="nav-link text-white {{ request()->routeIs('dashboard') ? 'bg-secondary rounded' : '' }}">
                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
             </a>
         </li>
         
+        {{-- MENU KHUSUS ADMIN --}}
         @if(auth()->user()->role === 'admin')
             <li class="nav-item mb-2">
                 <a href="{{ route('categories.index') }}" class="nav-link text-white {{ request()->routeIs('categories.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-tags me-2"></i> Kategori
                 </a>
             </li>
+            
+            {{-- Menu Produk sudah dibetulkan href-nya --}}
             <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
+                <a href="{{ route('products.index') }}" class="nav-link text-white {{ request()->routeIs('products.*') ? 'bg-secondary rounded' : '' }}">
                     <i class="bi bi-box me-2"></i> Produk
                 </a>
             </li>
+            
             <li class="nav-item mb-2">
                 <a href="#" class="nav-link text-white">
                     <i class="bi bi-people me-2"></i> Pelanggan
@@ -48,8 +54,10 @@
                     <i class="bi bi-gear me-2"></i> Pengaturan
                 </a>
             </li>
-        @else
-            <!-- Menu Khusus Kasir -->
+        @endif
+
+        {{-- MENU KHUSUS KASIR --}}
+        @if(auth()->user()->role === 'kasir')
             <li class="nav-item mb-2">
                 <a href="#" class="nav-link text-white">
                     <i class="bi bi-cart me-2"></i> Kasir
@@ -61,5 +69,6 @@
                 </a>
             </li>
         @endif
+
     </ul>
 </div>

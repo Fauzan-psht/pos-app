@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductController; // <-- Tambahkan baris ini
 use Illuminate\Support\Facades\Route;
 
 // Redirect halaman awal ke dashboard
@@ -21,6 +22,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
-    // Route categories SUDAH ADA di sini
     Route::resource('categories', CategoryController::class)->except('show');
+    
+    // Tambahkan route products di sini
+    Route::resource('products', ProductController::class);
 });
