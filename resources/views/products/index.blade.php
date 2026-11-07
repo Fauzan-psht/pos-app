@@ -44,22 +44,22 @@
             <table class="table table-bordered table-hover align-middle">
                 <thead>
                     <tr>
-                        <th>Gambar</th>
+                        <th width="80">Gambar</th>
                         <th>SKU</th>
                         <th>Nama Produk</th>
                         <th>Kategori</th>
                         <th>Harga Jual</th>
                         <th>Stok</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th width="200">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($products as $product)
                         <tr>
-                            <td>
+                            <td class="text-center">
                                 @if($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" width="50" class="img-thumbnail">
+                                    <img src="{{ asset('storage/' . $product->image) }}" width="50" height="50" class="img-thumbnail object-fit-cover" alt="Gambar">
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
@@ -95,12 +95,45 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">Belum ada produk.</td>
+                            <td colspan="8" class="text-center py-4">Belum ada produk.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-            {{ $products->links() }}
-        </div>
-    </div>
+            <div class="mt-3">
+                <!-- Ganti {{ $products->links() }} dengan kode ini -->
+@if ($products->hasPages())
+    <ul class="pagination pagination-sm justify-content-center mt-3">
+        {{-- Tombol Previous --}}
+        @if ($products->onFirstPage())
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        @else
+            <li class="page-item"><a class="page-link" href="{{ $products->previousPageUrl() }}" rel="prev">Previous</a></li>
+        @endif
+
+        {{-- Nomor Halaman --}}
+        @foreach ($products->links()->elements as $element)
+            @if (is_string($element))
+                <li class="page-item disabled"><span class="page-link">{{ $element }}</span></li>
+            @endif
+
+            @if (is_array($element))
+                @foreach ($element as $page => $url)
+                    @if ($page == $products->currentPage())
+                        <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                    @else
+                        <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                    @endif
+                @endforeach
+            @endif
+        @endforeach
+
+        {{-- Tombol Next --}}
+        @if ($products->hasMorePages())
+            <li class="page-item"><a class="page-link" href="{{ $products->nextPageUrl() }}" rel="next">Next</a></li>
+        @else
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+        @endif
+    </ul>
+@endif
 @endsection

@@ -4,9 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Struk - {{ $sale->invoice_number }}</title>
-    <style>
-        body { font-family: 'Courier New', Courier, monospace; background: #f0f0f0; padding: 20px; }
-        .receipt { width: 80mm; background: #fff; padding: 10px; margin: 0 auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        <style>
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            background: #f0f0f0; 
+            padding: 20px; 
+        }
+        .receipt { 
+            width: 80mm; /* Lebar kertas struk */
+            background: #fff; 
+            padding: 15px; 
+            margin: 0 auto; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            font-size: 12px;
+        }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -14,29 +25,51 @@
         .table-bordered-top { border-top: 1px dashed #000; padding-top: 10px; margin-top: 10px; }
         .table-bordered-bottom { border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
         
+        /* CSS SAKTI UNTUK CETAK KERTAS STRUK */
         @media print {
-            body { background: #fff; padding: 0; }
-            .receipt { box-shadow: none; width: 100%; padding: 0; }
-            .no-print { display: none; }
+            @page { 
+                size: 80mm auto; /* Memaksa lebar kertas jadi 80mm */
+                margin: 0; 
+            }
+            body { 
+                background: #fff; 
+                padding: 0; 
+                margin: 0;
+                width: 80mm; /* Memaksa body selebar 80mm */
+            }
+            .receipt { 
+                box-shadow: none; 
+                width: 100%; 
+                padding: 5px; 
+                margin: 0;
+            }
+            .no-print { 
+                display: none !important; 
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="no-print text-center mb-3">
-        <button onclick="window.print()" class="btn btn-primary">Cetak Struk</button>
-        <a href="{{ route('sales.create') }}" class="btn btn-success">Transaksi Baru</a>
-        <a href="{{ route('dashboard') }}" class="btn btn-secondary">Dashboard</a>
+    <!-- Tombol Navigasi (Hanya muncul di layar, tidak ikut tercetak) -->
+    <div class="no-print text-center mb-4">
+        <button onclick="window.print()" class="btn btn-primary" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #0d6efd; color: white; border: none; border-radius: 5px;">
+            🖨️ Cetak Struk
+        </button>
+        <br><br>
+        <a href="{{ route('sales.create') }}" style="color: #198754; text-decoration: none; font-weight: bold; margin-right: 15px;">+ Transaksi Baru</a>
+        <a href="{{ route('dashboard') }}" style="color: #6c757d; text-decoration: none;">Kembali ke Dashboard</a>
     </div>
 
+    <!-- Area Struk -->
     <div class="receipt">
         <div class="text-center">
-            <h3 class="mb-0">{{ \App\Models\Setting::get('store_name', 'Toko POS') }}</h3>
-            <p style="font-size: 12px; margin: 2px 0;">{{ \App\Models\Setting::get('store_address', 'Alamat Toko') }}</p>
-            <p style="font-size: 12px; margin: 2px 0;">Telp: {{ \App\Models\Setting::get('store_phone', '-') }}</p>
+            <h3 class="mb-0" style="margin: 0 0 5px 0; font-size: 16px;">{{ \App\Models\Setting::get('store_name', 'Toko POS') }}</h3>
+            <p style="font-size: 11px; margin: 2px 0;">{{ \App\Models\Setting::get('store_address', 'Alamat Toko') }}</p>
+            <p style="font-size: 11px; margin: 2px 0;">Telp: {{ \App\Models\Setting::get('store_phone', '-') }}</p>
         </div>
 
-        <div class="table-bordered-top" style="font-size: 12px;">
+        <div class="table-bordered-top" style="font-size: 11px;">
             <div>No: {{ $sale->invoice_number }}</div>
             <div>Tgl: {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}</div>
             <div>Kasir: {{ $sale->user->name }}</div>
@@ -46,11 +79,11 @@
         <table class="table table-bordered-bottom">
             @foreach($sale->items as $item)
                 <tr>
-                    <td colspan="2">{{ $item->product_name }}</td>
+                    <td colspan="2" style="font-size: 12px;">{{ $item->product_name }}</td>
                 </tr>
                 <tr>
-                    <td>{{ $item->quantity }} x @rupiah($item->price)</td>
-                    <td class="text-right">@rupiah($item->subtotal)</td>
+                    <td style="font-size: 12px;">{{ $item->quantity }} x @rupiah($item->price)</td>
+                    <td class="text-right" style="font-size: 12px;">@rupiah($item->subtotal)</td>
                 </tr>
             @endforeach
         </table>
@@ -80,7 +113,7 @@
             </tr>
         </table>
 
-        <div class="text-center" style="font-size: 12px; margin-top: 15px;">
+        <div class="text-center" style="font-size: 11px; margin-top: 15px;">
             <p>{{ \App\Models\Setting::get('receipt_footer', 'Terima kasih telah berbelanja!') }}</p>
         </div>
     </div>

@@ -7,11 +7,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f4f6f9; height: 100vh; overflow: hidden; }
-        .product-list { height: calc(100vh - 150px); overflow-y: auto; }
-        .cart-list { height: calc(100vh - 380px); overflow-y: auto; }
+        body { background-color: #f4f6f9; }
+        /* Menghilangkan batasan tinggi layar agar bisa di-scroll */
+        .main-container { padding: 15px; min-height: calc(100vh - 56px); }
         .product-card { cursor: pointer; transition: 0.2s; }
         .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -29,7 +32,8 @@
         </div>
     </nav>
 
-    <div class="container-fluid mt-3">
+    <!-- Kontainer Utama -->
+    <div class="main-container container-fluid">
         @if(session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif

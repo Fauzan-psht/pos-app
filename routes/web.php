@@ -47,6 +47,9 @@ Route::middleware('auth')->group(function () {
     // Route Manajemen User (Hanya Admin)
     Route::resource('users', UserController::class)->except('show');
 
+    // Route Kasir & Riwayat Transaksi
+Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'show']);
+
     // Route Pengaturan Toko (Hanya Admin)
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');

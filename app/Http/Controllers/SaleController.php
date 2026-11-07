@@ -58,13 +58,14 @@ class SaleController extends Controller
         try {
             $sale = DB::transaction(function () use ($validated) {
                 $ids = collect($validated['items'])->pluck('product_id');
+                
                 // Kunci baris produk agar tidak bisa diubah proses lain selama transaksi ini
                 $products = Product::whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
                 
                 $subtotal = 0;
                 $saleItems = [];
 
-                // Hitung ulang total di server
+                // Hitung ulang total di server (Jangan percaya angka dari browser)
                 foreach ($validated['items'] as $index => $item) {
                     $product = $products[$item['product_id']];
 
@@ -118,7 +119,7 @@ class SaleController extends Controller
                     'note' => $validated['note'] ?? null,
                 ]);
 
-                // Simpan Detail
+                // Simpan Detail Item
                 $newSale->items()->createMany($saleItems);
 
                 // Kurangi Stok
@@ -129,6 +130,7 @@ class SaleController extends Controller
                 return $newSale;
             });
 
+            // BERHASIL: Arahkan ke halaman Struk (sales.show)
             return redirect()->route('sales.show', $sale->id)->with('success', 'Transaksi berhasil disimpan.');
 
         } catch (ValidationException $e) {
