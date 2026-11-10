@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\SalesExport; // <-- Tambahan untuk Export Excel
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel; // <-- Tambahan untuk Export Excel
 
 class ReportController extends Controller implements HasMiddleware
 {
@@ -76,5 +78,20 @@ class ReportController extends Controller implements HasMiddleware
         return view('reports.index', compact(
             'startDate', 'endDate', 'summary', 'dailySales', 'topProducts', 'profit', 'lowStock'
         ));
+    }
+
+    // ==========================================
+    // METHOD BARU UNTUK EXPORT EXCEL (BONUS B1)
+    // ==========================================
+    public function exportExcel(Request $request)
+    {
+        $startDate = $request->input('start_date', date('Y-m-01'));
+        $endDate = $request->input('end_date', date('Y-m-d'));
+
+        // Nama file Excel
+        $fileName = 'Laporan_Penjualan_' . $startDate . '_sampai_' . $endDate . '.xlsx';
+
+        // Proses download menggunakan class SalesExport
+        return Excel::download(new SalesExport($startDate, $endDate), $fileName);
     }
 }

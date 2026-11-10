@@ -3,6 +3,10 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Laporan Penjualan</h4>
+        <!-- TOMBOL EXPORT EXCEL -->
+        <a href="{{ route('reports.export', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Export ke Excel
+        </a>
     </div>
 
     {{-- Filter Tanggal --}}
