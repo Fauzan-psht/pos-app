@@ -150,4 +150,61 @@ class SaleController extends Controller
         $sale->load(['items', 'customer', 'user']);
         return view('sales.receipt', compact('sale'));
     }
+
+    // ==========================================
+    // FUNGSI DETAIL TRANSAKSI (Untuk tombol Ikon Mata)
+    // ==========================================
+    public function detail(Sale $sale)
+    {
+        // Proteksi: Kasir tidak boleh lihat transaksi kasir lain
+        if (auth()->user()->role === 'kasir' && $sale->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $sale->load(['items', 'customer', 'user']);
+        return view('sales.detail', compact('sale'));
+    }
+
+    // ==========================================
+    // BONUS B2: FUNGSI VOID TRANSAKSI
+    // ==========================================
+    public function void(Request $request, Sale $sale)
+    {
+        // 1. Aturan Modul: Hanya Admin yang bisa akses
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Akses ditolak. Hanya Admin yang bisa membatalkan transaksi.');
+        }
+
+        // 2. Aturan Modul: Cek jika transaksi sudah di-void sebelumnya
+        if ($sale->status === 'void') {
+            return back()->with('error', 'Transaksi ini sudah dibatalkan sebelumnya.');
+        }
+
+        // 3. Aturan Modul: Admin mengisi alasan
+        $request->validate([
+            'void_reason' => 'required|string|max:255'
+        ]);
+
+        // 4. Aturan Modul: Proses dalam DB::transaction()
+        try {
+            DB::transaction(function () use ($sale, $request) {
+                
+                // a. Ubah status jadi void dan simpan alasan
+                $sale->update([
+                    'status' => 'void',
+                    'note' => 'VOID: ' . $request->void_reason
+                ]);
+
+                // b. Kembalikan stok dengan increment
+                foreach ($sale->items as $item) {
+                    Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                }
+            });
+
+            return redirect()->route('sales.index')->with('success', 'Transaksi berhasil dibatalkan dan stok telah dikembalikan.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membatalkan transaksi: ' . $e->getMessage());
+        }
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
@@ -38,13 +39,19 @@ Route::middleware('auth')->group(function () {
     // Route Stok Masuk
     Route::resource('purchases', PurchaseController::class)->only(['index', 'create', 'store', 'show']);
 
-    // Route Kasir & Riwayat Transaksi (Hanya ditulis SEKALI)
+    // Route Kasir & Riwayat Transaksi
     Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'show']);
+
+    // Route Detail Transaksi
+    Route::get('/sales/{sale}/detail', [SaleController::class, 'detail'])->name('sales.detail');
+
+    // Route Void Transaksi (BONUS B2)
+    Route::post('/sales/{sale}/void', [SaleController::class, 'void'])->name('sales.void');
 
     // Route Laporan Penjualan (Hanya Admin)
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     
-    // Route Export Excel (BONUS B1) <-- TAMBAHAN BARU
+    // Route Export Excel (BONUS B1)
     Route::get('/reports/export', [ReportController::class, 'exportExcel'])->name('reports.export');
 
     // Route Manajemen User (Hanya Admin)
@@ -53,4 +60,7 @@ Route::middleware('auth')->group(function () {
     // Route Pengaturan Toko (Hanya Admin)
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Route Log Aktivitas (BONUS B3)
+    Route::get('/logs', [ActivityLogController::class, 'index'])->name('logs.index');
 });

@@ -4,21 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Struk - {{ $sale->invoice_number }}</title>
-          <style>
-        /* === TAMPILAN DI LAYAR WEB === */
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
         body { 
             font-family: 'Courier New', Courier, monospace; 
             background: #f0f0f0; 
             padding: 20px; 
             margin: 0;
         }
-        
         .receipt-container {
             display: flex;
             justify-content: center;
             margin-top: 20px;
         }
-
         .receipt { 
             width: 80mm; 
             background: #fff; 
@@ -26,7 +25,6 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1); 
             font-size: 12px;
         }
-        
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -34,48 +32,46 @@
         .table-bordered-top { border-top: 1px dashed #000; padding-top: 10px; margin-top: 10px; }
         .table-bordered-bottom { border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
         
-        /* === TAMPILAN SAAT DICETAK PDF === */
         @media print {
-            /* Kertas tetap A4 jika tidak diubah manual, tapi struk akan di tengah */
-            body { 
-                background: #fff; 
-                padding: 0; 
-                margin: 0;
-            }
-            .receipt-container {
-                display: flex; /* Tetap pakai flex agar struk di tengah */
-                justify-content: center; /* Menengahkan struk */
-                margin-top: 50px; /* Memberi jarak dari atas kertas */
-            }
-            .receipt { 
-                box-shadow: none; 
-                width: 80mm; 
-                padding: 10px; 
-                margin: 0;
-            }
-            .no-print { 
-                display: none !important; 
-            }
+            body { background: #fff; padding: 0; margin: 0; }
+            .receipt-container { display: flex; justify-content: center; margin-top: 50px; }
+            .receipt { box-shadow: none; width: 80mm; padding: 10px; margin: 0; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Tombol Navigasi (Hanya muncul di layar) -->
+    <!-- Tombol Navigasi & Void (Hanya muncul di layar) -->
     <div class="no-print text-center mb-4">
         <button onclick="window.print()" class="btn btn-primary" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #0d6efd; color: white; border: none; border-radius: 5px;">
             🖨️ Cetak Struk
         </button>
         <br><br>
         <a href="{{ route('sales.create') }}" style="color: #198754; text-decoration: none; font-weight: bold; margin-right: 15px;">+ Transaksi Baru</a>
+        
+        <!-- TOMBOL VOID KHUSUS ADMIN -->
+        @if(auth()->user()->role === 'admin' && $sale->status === 'paid')
+            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#voidModal" style="margin-right: 15px;">
+                <i class="bi bi-x-circle"></i> Void Transaksi
+            </button>
+        @endif
+
         <a href="{{ route('dashboard') }}" style="color: #6c757d; text-decoration: none;">Kembali ke Dashboard</a>
     </div>
 
     <!-- Wadah untuk menengahkan struk -->
     <div class="receipt-container">
         <div class="receipt">
-            <!-- ... (ISI STRUK DARI <div class="text-center"> SAMPAI FOOTER TETAP SAMA SEPERTI SEBELUMNYA) ... -->
             
+            <!-- TANDA VOID DI STRUK -->
+            @if($sale->status === 'void')
+                <div class="text-center" style="border: 2px dashed red; padding: 5px; margin-bottom: 15px;">
+                    <h4 style="color: red; margin: 0; font-weight: bold;">*** VOID ***</h4>
+                    <p style="font-size: 10px; margin: 5px 0 0 0; color: red;">Alasan: {{ $sale->note }}</p>
+                </div>
+            @endif
+
             <div class="text-center">
                 <h3 class="mb-0" style="margin: 0 0 5px 0; font-size: 16px;">{{ \App\Models\Setting::get('store_name', 'Toko POS') }}</h3>
                 <p style="font-size: 11px; margin: 2px 0;">{{ \App\Models\Setting::get('store_address', 'Alamat Toko') }}</p>
@@ -132,5 +128,36 @@
         </div>
     </div>
 
+    <!-- MODAL KONFIRMASI VOID -->
+    @if(auth()->user()->role === 'admin' && $sale->status === 'paid')
+    <div class="modal fade" id="voidModal" tabindex="-1" aria-labelledby="voidModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="voidModalLabel">Konfirmasi Void Transaksi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('sales.void', $sale->id) }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <p>Apakah Anda yakin ingin membatalkan transaksi <strong>{{ $sale->invoice_number }}</strong>?</p>
+                        <p class="text-danger"><small>Stok akan dikembalikan otomatis ke gudang.</small></p>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Alasan Pembatalan</label>
+                            <textarea name="void_reason" class="form-control" rows="3" required placeholder="Contoh: Pelanggan salah input barang, atau batal beli."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-danger">Ya, Batalkan Transaksi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Bootstrap JS untuk Modal -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

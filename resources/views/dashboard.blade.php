@@ -87,9 +87,9 @@
                                 <td class="fw-bold text-primary">@rupiah($sale->total)</td>
                                 <td>
                                     @if($sale->status === 'paid')
-                                        <span class="badge bg-success">Lunas</span>
+                                        <span class="badge bg-success">Sukses</span>
                                     @else
-                                        <span class="badge bg-danger">Void</span>
+                                        <span class="badge bg-danger">Dibatalkan</span>
                                     @endif
                                 </td>
                             </tr>

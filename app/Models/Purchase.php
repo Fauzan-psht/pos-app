@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\LogsActivity; // <-- Tambahkan ini
 
 class Purchase extends Model
 {
+    use LogsActivity; // <-- Tambahkan ini
+
     protected $fillable = [
         'purchase_number', 'supplier_id', 'user_id', 'purchase_date', 'total_amount', 'note'
     ];
