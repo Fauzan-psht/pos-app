@@ -1,7 +1,7 @@
 <style>
     /* Desain Custom Sidebar */
     .sidebar-custom {
-        background: #1e1e2d; /* Warna background gelap elegan */
+        background: #1e1e2d; 
         border-right: 1px solid #2d2d3f;
         box-shadow: 2px 0 10px rgba(0,0,0,0.1);
         width: 250px;
@@ -20,7 +20,7 @@
         text-decoration: none;
     }
     
-    /* Kotak Ikon Logo */
+    /* Kotak Ikon Logo Baru */
     .logo-box {
         width: 38px;
         height: 38px;
@@ -34,10 +34,12 @@
         margin-right: 12px;
     }
     
-    .logo-box i {
-        font-size: 20px;
-        color: #ffffff;
-        margin: 0;
+    /* CSS untuk mewarnai SVG menjadi putih di dalam kotak */
+    .svg-logo-white { 
+        width: 22px; 
+        height: auto; 
+        fill: #ffffff; 
+        margin: 0; 
     }
 
     /* Teks Nama Toko */
@@ -52,11 +54,11 @@
         max-width: 160px;
     }
 
-    /* === JUDUL KATEGORI MENU (UTAMA, MASTER DATA, dll) === */
+    /* === JUDUL KATEGORI MENU === */
     .menu-category {
         font-size: 11px;
         font-weight: 700;
-        color: #6c757d; /* Warna abu-abu redup */
+        color: #6c757d;
         text-transform: uppercase;
         letter-spacing: 1px;
         padding: 15px 20px 5px 20px;
@@ -81,9 +83,9 @@
         transform: translateX(5px);
     }
 
-    /* Efek Menu Aktif (Warna Ungu/Biru) */
+    /* Efek Menu Aktif */
     .sidebar-custom .nav-link.active-menu {
-        background: linear-gradient(90deg, #6f42c1 0%, #0d6efd 100%); /* Gradien Ungu-Biru */
+        background: linear-gradient(90deg, #6f42c1 0%, #0d6efd 100%);
         color: #ffffff !important;
         box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
     }
@@ -100,82 +102,101 @@
     <!-- Logo / Brand -->
     <a href="{{ route('dashboard') }}" class="sidebar-brand">
         <div class="logo-box">
-            <i class="bi bi-shop-window"></i>
+            <!-- IKON TOKO (SVG) -->
+            <svg class="svg-logo-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/>
+                <path d="M12.5 2.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5S11 4.83 11 4s.67-1.5 1.5-1.5zM15 6h-3.5L9 9.5V14h1v-3.5h1V14h1v-3.5h1V14h1V8.5L15 6z"/>
+            </svg>
         </div>
         <span>{{ \App\Models\Setting::get('store_name', 'POS APP') }}</span>
     </a>
 
     <ul class="nav flex-column mb-auto">
         
-        {{-- KATEGORI: UTAMA (Semua Role) --}}
+        {{-- KATEGORI: UTAMA --}}
         <div class="menu-category">Utama</div>
+        
         <li class="nav-item">
             <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active-menu' : '' }}">
                 <i class="bi bi-grid-1x2-fill"></i> Dashboard
             </a>
         </li>
+        
         <li class="nav-item">
             <a href="{{ route('sales.create') }}" class="nav-link {{ request()->routeIs('sales.create') ? 'active-menu' : '' }}">
                 <i class="bi bi-cart-fill"></i> Kasir
             </a>
         </li>
+        
         <li class="nav-item">
             <a href="{{ route('sales.index') }}" class="nav-link {{ request()->routeIs('sales.index') ? 'active-menu' : '' }}">
                 <i class="bi bi-clock-history"></i> Riwayat Transaksi
             </a>
         </li>
 
-        {{-- KATEGORI: MASTER DATA (Khusus Admin) --}}
+        {{-- MENU KHUSUS ADMIN --}}
         @if(auth()->user()->role === 'admin')
+        
+            {{-- KATEGORI: MASTER DATA --}}
             <div class="menu-category">Master Data</div>
+            
             <li class="nav-item">
                 <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-box-seam-fill"></i> Produk
                 </a>
             </li>
+            
             <li class="nav-item">
                 <a href="{{ route('categories.index') }}" class="nav-link {{ request()->routeIs('categories.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-tags-fill"></i> Kategori
                 </a>
             </li>
+            
             <li class="nav-item">
                 <a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-people-fill"></i> Pelanggan
                 </a>
             </li>
+
             <li class="nav-item">
                 <a href="{{ route('suppliers.index') }}" class="nav-link {{ request()->routeIs('suppliers.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-truck"></i> Supplier
                 </a>
             </li>
+
             <li class="nav-item">
                 <a href="{{ route('purchases.index') }}" class="nav-link {{ request()->routeIs('purchases.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-cart-plus-fill"></i> Stok Masuk
                 </a>
             </li>
 
-            {{-- KATEGORI: LAPORAN & SETTING (Khusus Admin) --}}
+            {{-- KATEGORI: LAPORAN & SETTING --}}
             <div class="menu-category">Laporan & Setting</div>
+            
             <li class="nav-item">
                 <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-file-earmark-bar-graph-fill"></i> Laporan
                 </a>
             </li>
+            
             <li class="nav-item">
                 <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-person-gear"></i> Manajemen User
                 </a>
             </li>
+            
             <li class="nav-item">
                 <a href="{{ route('settings.index') }}" class="nav-link {{ request()->routeIs('settings.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-gear-fill"></i> Pengaturan
                 </a>
             </li>
+            
             <li class="nav-item">
                 <a href="{{ route('logs.index') }}" class="nav-link {{ request()->routeIs('logs.*') ? 'active-menu' : '' }}">
                     <i class="bi bi-list-check"></i> Log Aktivitas
                 </a>
             </li>
+            
         @endif
 
     </ul>
