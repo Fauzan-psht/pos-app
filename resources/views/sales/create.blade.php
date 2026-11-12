@@ -108,12 +108,16 @@
                         <h5 class="mb-0 text-success fw-bold" id="change-text">Rp 0</h5>
                     </div>
 
+                    <!-- TOMBOL SIMPAN (TUNAI / TRANSFER) -->
                     <button type="submit" class="btn btn-success btn-lg w-100 shadow-sm fw-bold" id="submit-btn-tunai" disabled>
                         <i class="bi bi-check-circle me-1"></i> Simpan Transaksi
                     </button>
+                    
+                    <!-- TOMBOL KHUSUS QRIS -->
                     <button type="button" class="btn btn-primary btn-lg w-100 shadow-sm fw-bold d-none" id="submit-btn-qris">
                         <i class="bi bi-qr-code-scan me-1"></i> Bayar dengan QRIS
                     </button>
+                    
                     <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary w-100 mt-2">Batal</a>
                 </div>
             </div>
@@ -147,8 +151,45 @@
     </div>
 </div>
 
+<!-- MODAL TRANSFER BANK -->
+<div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="transferModalLabel"><i class="bi bi-bank me-2"></i> Instruksi Transfer Bank</h5>
+            </div>
+            <div class="modal-body text-center">
+                <h4 class="mb-1 fw-bold text-primary" id="transfer-total-text">Rp 0</h4>
+                <p class="text-muted small mb-2">Silakan transfer sesuai nominal di atas ke rekening:</p>
+                
+                <h5 class="text-danger fw-bold mb-3" id="transfer-timer">Waktu tersisa: 01:00</h5>
+
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-1">Bank BCA</h5>
+                        <h3 class="fw-bold text-dark tracking-wider mb-2">123-456-7890</h3>
+                        <p class="text-muted mb-0">a.n. <strong>Toko Makmur Sentosa</strong></p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning py-2 mb-0" style="font-size: 13px;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Konfirmasi setelah pembeli menunjukkan bukti transfer.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success px-4" id="confirm-transfer-btn">Pembayaran Diterima</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     let cart = {};
+    let countdownInterval;
+    let transferInterval;
+    let currentPaymentMethod = 'tunai';
+    let isTransferConfirmed = false;
 
     function renderCart() {
         const container = document.getElementById('cart-body');
@@ -215,13 +256,12 @@
         const changeText = document.getElementById('change-text');
         const btnTunai = document.getElementById('submit-btn-tunai');
         const btnQris = document.getElementById('submit-btn-qris');
-        let paymentMethod = document.getElementById('payment-method').value;
         let itemsCount = Object.keys(cart).length;
 
         if (itemsCount === 0) {
             btnTunai.disabled = true;
             btnQris.disabled = true;
-        } else if (paid < total && paymentMethod === 'tunai') {
+        } else if (paid < total && currentPaymentMethod === 'tunai') {
             changeText.innerText = 'Kurang ' + formatRupiah(Math.abs(change));
             changeText.className = 'mb-0 text-danger fw-bold';
             btnTunai.disabled = true;
@@ -266,6 +306,7 @@
     document.getElementById('discount-input').addEventListener('input', calculateTotal);
     
     document.getElementById('payment-method').addEventListener('change', function() {
+        currentPaymentMethod = this.value;
         const paidInput = document.getElementById('paid-input');
         const btnTunai = document.getElementById('submit-btn-tunai');
         const btnQris = document.getElementById('submit-btn-qris');
@@ -277,22 +318,68 @@
             paidInput.value = subtotal - discount; 
             paidInput.readOnly = true;
 
-            btnTunai.classList.add('d-none');
-            btnQris.classList.remove('d-none');
+            if (this.value === 'qris') {
+                btnTunai.classList.add('d-none');
+                btnQris.classList.remove('d-none');
+                btnQris.innerHTML = '<i class="bi bi-qr-code-scan me-1"></i> Bayar dengan QRIS';
+            } else {
+                btnTunai.classList.remove('d-none');
+                btnQris.classList.add('d-none');
+                btnTunai.innerHTML = '<i class="bi bi-bank me-1"></i> Instruksi Transfer Bank';
+            }
         } else { 
             paidInput.readOnly = false; 
             btnTunai.classList.remove('d-none');
             btnQris.classList.add('d-none');
+            btnTunai.innerHTML = '<i class="bi bi-check-circle me-1"></i> Simpan Transaksi';
         }
         calculateTotal();
     });
 
     // ==========================================
+    // LOGIKA KHUSUS TRANSFER BANK & TIMER
+    // ==========================================
+    document.getElementById('pos-form').addEventListener('submit', function(e) {
+        if (currentPaymentMethod === 'transfer' && !isTransferConfirmed) {
+            e.preventDefault(); 
+            
+            let totalText = document.getElementById('total-text').innerText;
+            document.getElementById('transfer-total-text').innerText = totalText;
+            
+            let transferModal = new bootstrap.Modal(document.getElementById('transferModal'));
+            transferModal.show();
+
+            let timeLeft = 60;
+            const timerElement = document.getElementById('transfer-timer');
+            timerElement.innerText = `Waktu tersisa: 01:00`;
+            clearInterval(transferInterval);
+
+            transferInterval = setInterval(function() {
+                timeLeft--;
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerElement.innerText = `Waktu tersisa: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(transferInterval);
+                    transferModal.hide();
+                    alert('Waktu transfer habis! Silakan lakukan pemesanan ulang.');
+                    document.getElementById('payment-method').value = 'tunai';
+                    document.getElementById('payment-method').dispatchEvent(new Event('change'));
+                }
+            }, 1000);
+        }
+    });
+
+    document.getElementById('confirm-transfer-btn').addEventListener('click', function() {
+        clearInterval(transferInterval); 
+        isTransferConfirmed = true;
+        document.getElementById('pos-form').submit();
+    });
+
+    // ==========================================
     // LOGIKA KHUSUS QRIS & TIMER
     // ==========================================
-    
-    let countdownInterval;
-
     document.getElementById('submit-btn-qris').addEventListener('click', function() {
         let totalText = document.getElementById('total-text').innerText;
         document.getElementById('qris-total-text').innerText = totalText;
@@ -303,12 +390,10 @@
         let timeLeft = 60;
         const timerElement = document.getElementById('countdown-timer');
         timerElement.innerText = `Waktu tersisa: 01:00`;
-
         clearInterval(countdownInterval);
 
         countdownInterval = setInterval(function() {
             timeLeft--;
-            
             let minutes = Math.floor(timeLeft / 60);
             let seconds = timeLeft % 60;
             timerElement.innerText = `Waktu tersisa: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -323,7 +408,6 @@
         }, 1000);
     });
 
-    // INI DIA KODE SAKTINYA: Saat bayar berhasil, submit form untuk simpan transaksi
     document.getElementById('confirm-qris-btn').addEventListener('click', function() {
         clearInterval(countdownInterval); 
         document.getElementById('pos-form').submit();
