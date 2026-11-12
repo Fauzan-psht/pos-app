@@ -33,24 +33,22 @@
         justify-content: center;
         margin-right: 12px;
     }
-    
-    /* CSS untuk mewarnai SVG menjadi putih di dalam kotak */
-    .svg-logo-white { 
-        width: 22px; 
-        height: auto; 
-        fill: #ffffff; 
-        margin: 0; 
-    }
 
-    /* Teks Nama Toko */
+    /* Teks Nama Toko (DIPERBAIKI: Bisa Turun Baris) */
     .sidebar-brand span {
-        font-size: 16px;
+        font-size: 15px; /* Ukuran font dasar */
         font-weight: 800;
         letter-spacing: 0.5px;
         color: #ffffff;
-        white-space: nowrap;
+        line-height: 1.1; /* Jarak antar baris jika turun ke bawah */
+        
+        /* KUNCI PERBAIKAN: Teks boleh turun baris */
+        white-space: normal; 
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Maksimal 2 baris */
+        -webkit-box-orient: vertical;
         overflow: hidden;
-        text-overflow: ellipsis;
+        
         max-width: 160px;
     }
 
@@ -102,10 +100,12 @@
     <!-- Logo / Brand -->
     <a href="{{ route('dashboard') }}" class="sidebar-brand">
         <div class="logo-box">
-            <!-- IKON TOKO (SVG) -->
-            <svg class="svg-logo-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/>
-                <path d="M12.5 2.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5S11 4.83 11 4s.67-1.5 1.5-1.5zM15 6h-3.5L9 9.5V14h1v-3.5h1V14h1v-3.5h1V14h1V8.5L15 6z"/>
+            <!-- IKON MINIMARKET MODERN -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #ffffff;">
+                <path d="M2 5h20v3H2V5zm2 5h16v11H4V10zm2 2v7h4v-7H6zm6 0v7h4v-7h-4z"/>
+                <circle cx="9" cy="4" r="1"/>
+                <circle cx="15" cy="4" r="1"/>
+                <path d="M10 2h4l1 1h-6l1-1z"/>
             </svg>
         </div>
         <span>{{ \App\Models\Setting::get('store_name', 'POS APP') }}</span>
