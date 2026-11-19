@@ -44,6 +44,14 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
+        foreach (['discount', 'paid_amount'] as $amountField) {
+            $amount = $request->input($amountField);
+
+            if (is_string($amount)) {
+                $request->merge([$amountField => str_replace('.', '', $amount)]);
+            }
+        }
+
         // 1. Validasi Input Dasar
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:customers,id',
@@ -138,7 +146,9 @@ class SaleController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan sistem: '.$e->getMessage())->withInput();
+            report($e);
+
+            return back()->with('error', 'Transaksi gagal diproses. Silakan coba lagi atau hubungi admin.')->withInput();
         }
     }
 

@@ -159,18 +159,71 @@ class PosTest extends TestCase
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 2], // Beli 2
             ],
-            'discount' => 0,
+            'discount' => '1.000',
             'payment_method' => 'tunai',
-            'paid_amount' => 20000,
+            'paid_amount' => '19.000',
         ]);
 
         $sale = Sale::first();
         $response->assertRedirect('/sales/'.$sale->id);
 
-        // Cek total (2 * 10000 = 20000)
-        $this->assertEquals(20000, $sale->total);
+        $this->assertEquals(19000, $sale->total);
+        $this->assertEquals(19000, $sale->paid_amount);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $kasir->id,
+            'action' => 'create',
+            'table_name' => 'sales',
+            'record_id' => $sale->id,
+        ]);
         // Cek stok berkurang (10 - 2 = 8)
         $this->assertEquals(8, $product->fresh()->stock);
+    }
+
+    public function test_penjualan_transfer_dicatat_dan_mengarah_ke_struk()
+    {
+        $kasir = $this->createUser('kasir');
+        $product = $this->createProduct(10);
+
+        $response = $this->actingAs($kasir)->post('/sales', [
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+            'discount' => 0,
+            'payment_method' => 'transfer',
+            'paid_amount' => '10.000',
+        ]);
+
+        $sale = Sale::first();
+        $response->assertRedirect('/sales/'.$sale->id);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $kasir->id,
+            'action' => 'create',
+            'table_name' => 'sales',
+            'record_id' => $sale->id,
+        ]);
+    }
+
+    public function test_kasir_melihat_pesan_jika_uang_tunai_kurang()
+    {
+        $kasir = $this->createUser('kasir');
+        $product = $this->createProduct(10);
+
+        $response = $this->actingAs($kasir)->from('/sales/create')->followingRedirects()->post('/sales', [
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+            'discount' => 0,
+            'payment_method' => 'tunai',
+            'paid_amount' => '5.000',
+        ]);
+
+        $response->assertOk()
+            ->assertSee('Uang bayar kurang dari total.');
+        $this->assertDatabaseCount('sales', 0);
+        $this->assertDatabaseMissing('activity_logs', [
+            'table_name' => 'sales',
+            'action' => 'create',
+        ]);
     }
 
     public function test_penjualan_menerima_jumlah_pecahan_dan_mengurangi_stok()
