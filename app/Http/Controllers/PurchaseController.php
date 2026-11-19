@@ -25,7 +25,7 @@ class PurchaseController extends Controller implements HasMiddleware
     {
         // Eager loading biar ga berat
         $purchases = Purchase::with('supplier')->latest()->paginate(10);
-        
+
         // TAMBAHAN: Data buat dropdown di modal Tambah Stok Masuk
         $suppliers = Supplier::orderBy('name')->get();
         $products = Product::where('is_active', true)->orderBy('name')->get();
@@ -38,6 +38,7 @@ class PurchaseController extends Controller implements HasMiddleware
     {
         $suppliers = Supplier::orderBy('name')->get();
         $products = Product::where('is_active', true)->orderBy('name')->get();
+
         return view('purchases.form', compact('suppliers', 'products'));
     }
 
@@ -50,11 +51,11 @@ class PurchaseController extends Controller implements HasMiddleware
             'note' => 'nullable|string|max:255',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|distinct|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.quantity' => 'required|numeric|decimal:0,3|min:0.001',
             'items.*.purchase_price' => 'required|numeric|min:0',
         ], [
             'items.*.product_id.distinct' => 'Produk tidak boleh dipilih dua kali dalam satu dokumen.',
-            'items.*.quantity.min' => 'Jumlah minimal 1.',
+            'items.*.quantity.min' => 'Jumlah minimal 0,001.',
         ]);
 
         // 2. Proses Simpan dengan DB Transaction
@@ -100,13 +101,14 @@ class PurchaseController extends Controller implements HasMiddleware
             return redirect()->route('purchases.index')->with('success', 'Dokumen Stok Masuk berhasil disimpan dan stok produk telah diperbarui.');
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Terjadi kesalahan: '.$e->getMessage())->withInput();
         }
     }
 
     public function show(Purchase $purchase)
     {
         $purchase->load(['supplier', 'user', 'items.product']);
+
         return view('purchases.show', compact('purchase'));
     }
 }

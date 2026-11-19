@@ -1,6 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
+    <style>
+        input[type="number"].qty-input::-webkit-inner-spin-button,
+        input[type="number"].qty-input::-webkit-outer-spin-button,
+        input[type="number"].quantity::-webkit-inner-spin-button,
+        input[type="number"].quantity::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"].qty-input,
+        input[type="number"].quantity {
+            -moz-appearance: textfield;
+        }
+    </style>
+
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Riwayat Stok Masuk</h4>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPurchaseModal">
@@ -161,7 +176,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="items[0][quantity]" class="form-control qty-input" value="1" min="1" required>
+                                            <input type="number" name="items[0][quantity]" class="form-control qty-input" value="1" min="0.001" step="0.001" required>
                                         </td>
                                         <td>
                                             <input type="text" name="items[0][purchase_price]" class="form-control price-input" value="0" inputmode="numeric" required>
@@ -201,6 +216,12 @@
             const itemsBody = document.getElementById('itemsBody');
             const addRowBtn = document.getElementById('addRowBtn');
             const grandTotalEl = document.getElementById('grandTotal');
+
+            itemsBody.addEventListener('wheel', function(e) {
+                if (e.target.matches('input[type="number"].qty-input')) {
+                    e.target.blur();
+                }
+            }, { passive: true });
 
             function formatRibuan(angka) {
                 let number_string = angka.replace(/[^,\d]/g, '').toString(),
@@ -267,7 +288,7 @@
                         </select>
                     </td>
                     <td>
-                        <input type="number" name="items[${rowIndex}][quantity]" class="form-control qty-input" value="1" min="1" required>
+                        <input type="number" name="items[${rowIndex}][quantity]" class="form-control qty-input" value="1" min="0.001" step="0.001" required>
                     </td>
                     <td>
                         <input type="text" name="items[${rowIndex}][purchase_price]" class="form-control price-input" value="0" inputmode="numeric" required>

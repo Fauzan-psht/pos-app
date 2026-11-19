@@ -42,12 +42,17 @@
                             <th>Nama Produk</th>
                             <th>Kategori</th>
                             <th>Harga Jual</th>
-                            <th>Stok</th>
+                            <th class="text-end">Stok</th>
+                            <th class="text-end">Stok Minimum</th>
                             <th width="150" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($products as $product)
+                            @php
+                                $stockValue = rtrim(rtrim(number_format((float) $product->stock, 3, '.', ''), '0'), '.');
+                                $minStockValue = rtrim(rtrim(number_format((float) $product->min_stock, 3, '.', ''), '0'), '.');
+                            @endphp
                             <tr class="product-row" data-name="{{ strtolower($product->name) }}" data-sku="{{ strtolower($product->sku) }}" data-category="{{ strtolower($product->category->name) }}">
                                 <td class="text-center">
                                     @if($product->image)
@@ -60,12 +65,13 @@
                                 <td class="fw-bold">{{ $product->name }}</td>
                                 <td>{{ $product->category->name }}</td>
                                 <td class="text-end">@rupiah($product->selling_price)</td>
-                                <td>
-                                    {{ $product->stock }} {{ $product->unit }}
+                                <td class="text-end">
+                                    {{ $stockValue }} {{ $product->unit }}
                                     @if($product->stock <= $product->min_stock)
                                         <span class="badge bg-danger ms-1">Stok Menipis</span>
                                     @endif
                                 </td>
+                                <td class="text-end">{{ $minStockValue }} {{ $product->unit }}</td>
                                 <td class="text-center">
                                     <a href="{{ route('products.show', $product->id) }}" class="btn btn-sm btn-info text-white" title="Lihat">
                                         <i class="bi bi-eye"></i>
@@ -115,19 +121,23 @@
                                                     </div>
                                                     <div class="col-md-4 mb-3">
                                                         <label class="form-label">Satuan</label>
-                                                        <input type="text" name="unit" class="form-control" value="{{ $product->unit }}" required>
+                                                        <select name="unit" class="form-select" required>
+                                                            @foreach($units as $unit)
+                                                                <option value="{{ $unit }}" {{ $product->unit === $unit ? 'selected' : '' }}>{{ $unit }}</option>
+                                                            @endforeach
+                                                        </select>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label">Harga Modal</label>
-                                                        <input type="text" name="purchase_price" class="form-control price-input" value="{{ $product->purchase_price }}" inputmode="numeric" required>
+                                                        <input type="text" name="purchase_price" class="form-control price-input" value="{{ number_format((float) $product->purchase_price, 0, ',', '.') }}" inputmode="numeric" required>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label">Harga Jual</label>
-                                                        <input type="text" name="selling_price" class="form-control price-input" value="{{ $product->selling_price }}" inputmode="numeric" required>
+                                                        <input type="text" name="selling_price" class="form-control price-input" value="{{ number_format((float) $product->selling_price, 0, ',', '.') }}" inputmode="numeric" required>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label">Minimal Stok</label>
-                                                        <input type="number" name="min_stock" class="form-control" value="{{ $product->min_stock }}" required>
+                                                        <input type="number" name="min_stock" class="form-control" value="{{ $minStockValue }}" min="0" step="0.001" required>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label">Gambar Baru (Opsional)</label>
@@ -154,7 +164,7 @@
                             </div>
                             @endif
                         @empty
-                            <tr><td colspan="7" class="text-center py-4 text-muted">Belum ada produk.</td></tr>
+                            <tr><td colspan="8" class="text-center py-4 text-muted">Belum ada produk.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -197,7 +207,12 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Satuan <span class="text-danger">*</span></label>
-                                <input type="text" name="unit" class="form-control" placeholder="Pcs, Box, dll" required>
+                                <select name="unit" class="form-select" required>
+                                    <option value="">-- Pilih Satuan --</option>
+                                    @foreach($units as $unit)
+                                        <option value="{{ $unit }}">{{ $unit }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Harga Modal <span class="text-danger">*</span></label>
@@ -209,11 +224,11 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Stok Awal <span class="text-danger">*</span></label>
-                                <input type="number" name="stock" class="form-control" value="0" required>
+                                <input type="number" name="stock" class="form-control" value="0" min="0" step="0.001" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Minimal Stok <span class="text-danger">*</span></label>
-                                <input type="number" name="min_stock" class="form-control" value="5" required>
+                                <input type="number" name="min_stock" class="form-control" value="5" min="0" step="0.001" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Gambar Produk</label>

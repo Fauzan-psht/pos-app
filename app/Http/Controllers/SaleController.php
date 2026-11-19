@@ -23,13 +23,14 @@ class SaleController extends Controller
 
         // Filter Tanggal & Invoice
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('sale_date', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
+            $query->whereBetween('sale_date', [$request->start_date.' 00:00:00', $request->end_date.' 23:59:59']);
         }
         if ($request->filled('invoice')) {
-            $query->where('invoice_number', 'like', '%' . $request->invoice . '%');
+            $query->where('invoice_number', 'like', '%'.$request->invoice.'%');
         }
 
         $sales = $query->paginate(10)->withQueryString();
+
         return view('sales.index', compact('sales'));
     }
 
@@ -37,6 +38,7 @@ class SaleController extends Controller
     {
         $products = Product::where('is_active', true)->where('stock', '>', 0)->orderBy('name')->get();
         $customers = Customer::orderBy('name')->get();
+
         return view('sales.create', compact('products', 'customers'));
     }
 
@@ -47,7 +49,7 @@ class SaleController extends Controller
             'customer_id' => 'nullable|exists:customers,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|distinct|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.quantity' => 'required|numeric|decimal:0,3|min:0.001',
             'discount' => 'nullable|numeric|min:0',
             'payment_method' => 'required|in:tunai,qris,transfer',
             'paid_amount' => 'required|numeric|min:0',
@@ -58,10 +60,10 @@ class SaleController extends Controller
         try {
             $sale = DB::transaction(function () use ($validated) {
                 $ids = collect($validated['items'])->pluck('product_id');
-                
+
                 // Kunci baris produk agar tidak bisa diubah proses lain selama transaksi ini
                 $products = Product::whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
-                
+
                 $subtotal = 0;
                 $saleItems = [];
 
@@ -96,7 +98,7 @@ class SaleController extends Controller
 
                 $total = $subtotal - $discount;
                 $paidAmount = $validated['payment_method'] === 'tunai' ? $validated['paid_amount'] : $total;
-                
+
                 if ($paidAmount < $total) {
                     throw ValidationException::withMessages(['paid_amount' => 'Uang bayar kurang dari total.']);
                 }
@@ -136,7 +138,7 @@ class SaleController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Terjadi kesalahan sistem: '.$e->getMessage())->withInput();
         }
     }
 
@@ -148,6 +150,7 @@ class SaleController extends Controller
         }
 
         $sale->load(['items', 'customer', 'user']);
+
         return view('sales.receipt', compact('sale'));
     }
 
@@ -162,6 +165,7 @@ class SaleController extends Controller
         }
 
         $sale->load(['items', 'customer', 'user']);
+
         return view('sales.detail', compact('sale'));
     }
 
@@ -182,17 +186,17 @@ class SaleController extends Controller
 
         // 3. Aturan Modul: Admin mengisi alasan
         $request->validate([
-            'void_reason' => 'required|string|max:255'
+            'void_reason' => 'required|string|max:255',
         ]);
 
         // 4. Aturan Modul: Proses dalam DB::transaction()
         try {
             DB::transaction(function () use ($sale, $request) {
-                
+
                 // a. Ubah status jadi void dan simpan alasan
                 $sale->update([
                     'status' => 'void',
-                    'note' => 'VOID: ' . $request->void_reason
+                    'note' => 'VOID: '.$request->void_reason,
                 ]);
 
                 // b. Kembalikan stok dengan increment
@@ -204,7 +208,7 @@ class SaleController extends Controller
             return redirect()->route('sales.index')->with('success', 'Transaksi berhasil dibatalkan dan stok telah dikembalikan.');
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal membatalkan transaksi: ' . $e->getMessage());
+            return back()->with('error', 'Gagal membatalkan transaksi: '.$e->getMessage());
         }
     }
 }

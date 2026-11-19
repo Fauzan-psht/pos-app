@@ -1,6 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $stockValue = old('stock', isset($product)
+        ? rtrim(rtrim(number_format((float) $product->stock, 3, '.', ''), '0'), '.')
+        : '');
+    $minStockValue = old('min_stock', isset($product)
+        ? rtrim(rtrim(number_format((float) $product->min_stock, 3, '.', ''), '0'), '.')
+        : 5);
+    $purchasePriceValue = old('purchase_price', isset($product)
+        ? number_format((float) $product->purchase_price, 0, ',', '.')
+        : '');
+    $sellingPriceValue = old('selling_price', isset($product)
+        ? number_format((float) $product->selling_price, 0, ',', '.')
+        : '');
+@endphp
+
 <style>
     /* Menghilangkan panah scroll pada input angka */
     input[type=number]::-webkit-inner-spin-button, 
@@ -51,31 +66,36 @@
 
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Satuan (Pcs, Box, dll)</label>
-                    <input type="text" name="unit" class="form-control @error('unit') is-invalid @enderror" value="{{ old('unit', $product->unit ?? '') }}" required>
+                    <select name="unit" class="form-select @error('unit') is-invalid @enderror" required>
+                        <option value="">-- Pilih Satuan --</option>
+                        @foreach($units as $unit)
+                            <option value="{{ $unit }}" {{ old('unit', $product->unit ?? '') === $unit ? 'selected' : '' }}>{{ $unit }}</option>
+                        @endforeach
+                    </select>
                     @error('unit') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Harga Modal</label>
-                    <input type="text" name="purchase_price" id="purchase_price" class="form-control @error('purchase_price') is-invalid @enderror" value="{{ old('purchase_price', $product->purchase_price ?? '') }}" inputmode="numeric" required>
+                    <input type="text" name="purchase_price" id="purchase_price" class="form-control @error('purchase_price') is-invalid @enderror" value="{{ $purchasePriceValue }}" inputmode="numeric" required>
                     @error('purchase_price') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Harga Jual</label>
-                    <input type="text" name="selling_price" id="selling_price" class="form-control @error('selling_price') is-invalid @enderror" value="{{ old('selling_price', $product->selling_price ?? '') }}" inputmode="numeric" required>
+                    <input type="text" name="selling_price" id="selling_price" class="form-control @error('selling_price') is-invalid @enderror" value="{{ $sellingPriceValue }}" inputmode="numeric" required>
                     @error('selling_price') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Stok Awal</label>
-                    <input type="number" name="stock" class="form-control @error('stock') is-invalid @enderror" value="{{ old('stock', $product->stock ?? '') }}" required>
+                    <input type="number" name="stock" class="form-control @error('stock') is-invalid @enderror" value="{{ $stockValue }}" min="0" step="0.001" required>
                     @error('stock') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Minimal Stok</label>
-                    <input type="number" name="min_stock" class="form-control @error('min_stock') is-invalid @enderror" value="{{ old('min_stock', $product->min_stock ?? 5) }}" required>
+                    <input type="number" name="min_stock" class="form-control @error('min_stock') is-invalid @enderror" value="{{ $minStockValue }}" min="0" step="0.001" required>
                     @error('min_stock') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 

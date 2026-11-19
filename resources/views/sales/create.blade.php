@@ -67,6 +67,9 @@
             <!-- Area Produk (Flex-grow agar mengisi sisa tinggi) -->
             <div class="row g-2" id="product-container" style="flex-grow: 1; overflow-y: auto; align-content: flex-start;">
                 @foreach($products as $product)
+                    @php
+                        $stockValue = rtrim(rtrim(number_format((float) $product->stock, 3, '.', ''), '0'), '.');
+                    @endphp
                     <div class="col-md-3 product-item" data-name="{{ strtolower($product->name) }}" data-sku="{{ strtolower($product->sku) }}">
                         <div class="card product-card h-100 shadow-sm border-0" onclick="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->selling_price }}, {{ $product->stock }}, '{{ $product->image ? asset('storage/' . $product->image) : '' }}')">
                             
@@ -85,7 +88,7 @@
                                 <div class="mt-auto">
                                     <strong class="text-primary d-block mb-1" style="font-size: 13px;">@rupiah($product->selling_price)</strong>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted" style="font-size: 10px;">Stok: {{ $product->stock }}</small>
+                                        <small class="text-muted" style="font-size: 10px;">Stok: {{ $stockValue }}</small>
                                         <span class="badge bg-light text-dark border" style="font-size: 9px;">{{ $product->sku }}</span>
                                     </div>
                                 </div>
@@ -276,7 +279,12 @@
                 row.innerHTML = 
                     '<div class="d-flex align-items-center" style="flex: 1; padding-right: 10px;">' + imageHtml +
                         '<div><div class="fw-bold text-dark" style="font-size: 13px;">' + item.name + '</div><small class="text-muted" style="font-size: 12px;">' + formatRupiah(item.price) + '</small></div></div>' +
-                    '<div class="d-flex align-items-center"><input type="number" name="items[' + item.id + '][quantity]" value="' + item.qty + '" min="1" max="' + item.maxStock + '" class="form-control form-control-sm text-center qty-input" style="width: 55px;" data-id="' + item.id + '"><input type="hidden" name="items[' + item.id + '][product_id]" value="' + item.id + '"></div>' +
+                    '<div class="input-group input-group-sm" style="width: 132px;">' +
+                        '<button type="button" class="btn btn-outline-secondary qty-stepper" data-id="' + item.id + '" data-delta="-1" aria-label="Kurangi jumlah"' + (item.qty <= 0.001 ? ' disabled' : '') + '><i class="bi bi-dash"></i></button>' +
+                        '<input type="number" name="items[' + item.id + '][quantity]" value="' + item.qty + '" min="0.001" max="' + item.maxStock + '" step="0.001" class="form-control text-center qty-input" data-id="' + item.id + '">' +
+                        '<button type="button" class="btn btn-outline-secondary qty-stepper" data-id="' + item.id + '" data-delta="1" aria-label="Tambah jumlah"' + (item.qty >= item.maxStock ? ' disabled' : '') + '><i class="bi bi-plus"></i></button>' +
+                        '<input type="hidden" name="items[' + item.id + '][product_id]" value="' + item.id + '">' +
+                    '</div>' +
                     '<div class="text-end" style="width: 85px;"><div class="fw-bold text-dark" style="font-size: 13px;">' + formatRupiah(itemSubtotal) + '</div></div>' +
                     '<button type="button" class="btn btn-sm btn-outline-danger ms-2 remove-btn border-0" data-id="' + item.id + '"><i class="bi bi-trash"></i></button>';
                 container.appendChild(row);
@@ -320,12 +328,29 @@
     }
 
     function addToCart(id, name, price, maxStock, imageUrl) {
-        if (cart[id]) { if (cart[id].qty < maxStock) { cart[id].qty++; } else { alert('Stok tidak mencukupi!'); } }
-        else { cart[id] = { id, name, price, qty: 1, maxStock, imageUrl }; }
+        maxStock = Number(maxStock);
+        if (cart[id]) {
+            cart[id].qty = Number(Math.min(maxStock, cart[id].qty + 1).toFixed(3));
+        } else {
+            cart[id] = { id, name, price, qty: Number(Math.min(1, maxStock).toFixed(3)), maxStock, imageUrl };
+        }
         renderCart();
     }
 
     document.getElementById('cart-body').addEventListener('click', function(e) {
+        const stepper = e.target.closest('.qty-stepper');
+        if (stepper) {
+            const item = cart[stepper.dataset.id];
+            const delta = Number(stepper.dataset.delta);
+            const nextQty = Number((item.qty + delta).toFixed(3));
+            const boundedQty = delta < 0
+                ? Math.max(0.001, nextQty)
+                : Math.min(item.maxStock, nextQty);
+            item.qty = boundedQty;
+            renderCart();
+            return;
+        }
+
         if (e.target.closest('.remove-btn')) {
             const id = e.target.closest('.remove-btn').getAttribute('data-id');
             delete cart[id]; renderCart();
@@ -335,8 +360,9 @@
     document.getElementById('cart-body').addEventListener('change', function(e) {
         if (e.target.classList.contains('qty-input')) {
             const id = e.target.getAttribute('data-id');
-            let qty = parseInt(e.target.value);
-            if (isNaN(qty) || qty < 1) qty = 1;
+            let qty = parseFloat(e.target.value);
+            if (isNaN(qty) || qty < 0.001) qty = 0.001;
+            qty = Number(qty.toFixed(3));
             if (qty > cart[id].maxStock) { alert('Melebihi batas stok!'); qty = cart[id].maxStock; }
             cart[id].qty = qty; renderCart();
         }
@@ -402,7 +428,9 @@
     });
 
     document.getElementById('confirm-transfer-btn').addEventListener('click', function() {
-        clearInterval(transferInterval); isTransferConfirmed = true; document.getElementById('pos-form').dispatchEvent(new Event('submit'));
+        clearInterval(transferInterval);
+        isTransferConfirmed = true;
+        document.getElementById('pos-form').requestSubmit();
     });
 
     document.getElementById('submit-btn-qris').addEventListener('click', function() {

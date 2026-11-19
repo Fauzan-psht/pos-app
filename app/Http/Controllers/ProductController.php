@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\PurchaseItem;
+use App\Models\SaleItem;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller implements HasMiddleware
@@ -27,9 +29,9 @@ class ProductController extends Controller implements HasMiddleware
 
         // Filter Pencarian Server-Side (Jika dibutuhkan)
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('sku', 'like', '%' . $request->search . '%');
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->search.'%')
+                    ->orWhere('sku', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -45,17 +47,24 @@ class ProductController extends Controller implements HasMiddleware
 
         $products = $query->latest()->paginate(10)->withQueryString();
         $categories = Category::orderBy('name')->get(); // <-- Wajib untuk Modal Edit
+        $units = collect(Product::UNIT_OPTIONS)
+            ->merge($products->getCollection()->pluck('unit'))
+            ->filter()
+            ->unique()
+            ->values();
 
-        return view('products.index', compact('products', 'categories'));
+        return view('products.index', compact('products', 'categories', 'units'));
     }
 
     public function create()
     {
         $categories = Category::orderBy('name')->get();
-        return view('products.form', compact('categories'));
+        $units = Product::UNIT_OPTIONS;
+
+        return view('products.form', compact('categories', 'units'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ImageService $imageService)
     {
         // Validasi Server-Side
         $validated = $request->validate([
@@ -65,8 +74,8 @@ class ProductController extends Controller implements HasMiddleware
             'unit' => 'required|string|max:20',
             'purchase_price' => 'required|string', // Ubah jadi string karena ada titik
             'selling_price' => 'required|string',  // Ubah jadi string karena ada titik
-            'stock' => 'required|integer|min:0',
-            'min_stock' => 'required|integer|min:0',
+            'stock' => 'required|numeric|decimal:0,3|min:0',
+            'min_stock' => 'required|numeric|decimal:0,3|min:0',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active' => 'nullable|boolean',
         ]);
@@ -84,8 +93,7 @@ class ProductController extends Controller implements HasMiddleware
 
         // Handle Upload Gambar
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $validated['image'] = $path;
+            $validated['image'] = $imageService->storeProductImage($request->file('image'));
         }
 
         Product::create($validated);
@@ -101,10 +109,12 @@ class ProductController extends Controller implements HasMiddleware
     public function edit(Product $product)
     {
         $categories = Category::orderBy('name')->get();
-        return view('products.form', compact('product', 'categories'));
+        $units = collect(Product::UNIT_OPTIONS)->push($product->unit)->filter()->unique()->values();
+
+        return view('products.form', compact('product', 'categories', 'units'));
     }
 
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Product $product, ImageService $imageService)
     {
         // Validasi Server-Side
         $validated = $request->validate([
@@ -114,7 +124,7 @@ class ProductController extends Controller implements HasMiddleware
             'unit' => 'required|string|max:20',
             'purchase_price' => 'required|string',
             'selling_price' => 'required|string',
-            'min_stock' => 'required|integer|min:0',
+            'min_stock' => 'required|numeric|decimal:0,3|min:0',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active' => 'nullable|boolean',
         ]);
@@ -130,36 +140,33 @@ class ProductController extends Controller implements HasMiddleware
 
         $validated['is_active'] = $request->boolean('is_active');
 
-        // Handle Upload Gambar (Hapus gambar lama jika ada gambar baru)
+        $oldImagePath = null;
         if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $path = $request->file('image')->store('products', 'public');
-            $validated['image'] = $path;
+            $oldImagePath = $product->image;
+            $validated['image'] = $imageService->storeProductImage($request->file('image'));
         }
 
         $product->update($validated);
+        $imageService->deleteProductImage($oldImagePath);
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
-    public function destroy(Product $product)
+    public function destroy(Product $product, ImageService $imageService)
     {
         // Cek apakah produk sudah punya riwayat transaksi
-        $hasTransactions = \App\Models\SaleItem::where('product_id', $product->id)->exists() || 
-                           \App\Models\PurchaseItem::where('product_id', $product->id)->exists();
+        $hasTransactions = SaleItem::where('product_id', $product->id)->exists() ||
+                           PurchaseItem::where('product_id', $product->id)->exists();
 
         if ($hasTransactions) {
             return redirect()->route('products.index')->with('error', 'Produk sudah memiliki riwayat transaksi, silakan nonaktifkan saja (ubah status menjadi Tidak Aktif).');
         }
 
         // Hapus gambar jika ada
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
+        $imageService->deleteProductImage($product->image);
 
         $product->delete();
+
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
     }
 }

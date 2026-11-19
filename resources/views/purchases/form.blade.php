@@ -1,6 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
+    <style>
+        input[type="number"].quantity::-webkit-inner-spin-button,
+        input[type="number"].quantity::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"].quantity {
+            -moz-appearance: textfield;
+        }
+    </style>
+
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Tambah Stok Masuk</h4>
         <a href="{{ route('purchases.index') }}" class="btn btn-secondary">Kembali</a>
@@ -62,7 +74,7 @@
                                     @endforeach
                                 </select>
                             </td>
-                            <td><input type="number" name="items[0][quantity]" class="form-control quantity" value="1" min="1" required></td>
+                            <td><input type="number" name="items[0][quantity]" class="form-control quantity" value="1" min="0.001" step="0.001" required></td>
                             <td><input type="number" name="items[0][purchase_price]" class="form-control price" value="0" min="0" required></td>
                             <td class="subtotal text-end pt-2">0</td>
                             <td class="text-center"><button type="button" class="btn btn-sm btn-danger remove-row" disabled><i class="bi bi-trash"></i></button></td>
@@ -87,6 +99,12 @@
         let rowIndex = 1;
         const itemsBody = document.getElementById('items-body');
         const addRowBtn = document.getElementById('add-row');
+
+        itemsBody.addEventListener('wheel', function(e) {
+            if (e.target.matches('input[type="number"].quantity')) {
+                e.target.blur();
+            }
+        }, { passive: true });
 
         // Fungsi Hitung Subtotal & Grand Total
         function calculateTotals() {
