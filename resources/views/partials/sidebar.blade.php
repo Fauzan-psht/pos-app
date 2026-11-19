@@ -1,5 +1,4 @@
 <style>
-    /* Desain Custom Sidebar */
     .sidebar-custom {
         background: #1e1e2d; 
         border-right: 1px solid #2d2d3f;
@@ -8,8 +7,6 @@
         min-height: 100vh;
         padding-bottom: 20px;
     }
-    
-    /* Logo POS App */
     .sidebar-brand {
         display: flex;
         align-items: center;
@@ -19,8 +16,6 @@
         border-bottom: 1px solid #2d2d3f;
         text-decoration: none;
     }
-    
-    /* Kotak Ikon Logo Baru */
     .logo-box {
         width: 38px;
         height: 38px;
@@ -32,27 +27,26 @@
         align-items: center;
         justify-content: center;
         margin-right: 12px;
+        overflow: hidden;
     }
-
-    /* Teks Nama Toko (DIPERBAIKI: Bisa Turun Baris) */
+    .logo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
     .sidebar-brand span {
-        font-size: 15px; /* Ukuran font dasar */
+        font-size: 15px;
         font-weight: 800;
         letter-spacing: 0.5px;
         color: #ffffff;
-        line-height: 1.1; /* Jarak antar baris jika turun ke bawah */
-        
-        /* KUNCI PERBAIKAN: Teks boleh turun baris */
+        line-height: 1.1;
         white-space: normal; 
         display: -webkit-box;
-        -webkit-line-clamp: 2; /* Maksimal 2 baris */
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        
         max-width: 160px;
     }
-
-    /* === JUDUL KATEGORI MENU === */
     .menu-category {
         font-size: 11px;
         font-weight: 700;
@@ -62,8 +56,6 @@
         padding: 15px 20px 5px 20px;
         margin-top: 10px;
     }
-
-    /* Gaya Menu */
     .sidebar-custom .nav-link {
         color: #a2a3b7 !important;
         font-size: 14px;
@@ -73,21 +65,16 @@
         border-radius: 8px;
         transition: all 0.3s ease;
     }
-    
-    /* Efek Hover */
     .sidebar-custom .nav-link:hover {
         color: #ffffff !important;
         background-color: rgba(255, 255, 255, 0.05);
         transform: translateX(5px);
     }
-
-    /* Efek Menu Aktif */
     .sidebar-custom .nav-link.active-menu {
         background: linear-gradient(90deg, #6f42c1 0%, #0d6efd 100%);
         color: #ffffff !important;
         box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
     }
-
     .sidebar-custom .nav-link i {
         font-size: 18px;
         margin-right: 12px;
@@ -97,23 +84,28 @@
 
 <div class="sidebar-custom text-white d-flex flex-column">
     
-    <!-- Logo / Brand -->
     <a href="{{ route('dashboard') }}" class="sidebar-brand">
         <div class="logo-box">
-            <!-- IKON MINIMARKET MODERN -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #ffffff;">
-                <path d="M2 5h20v3H2V5zm2 5h16v11H4V10zm2 2v7h4v-7H6zm6 0v7h4v-7h-4z"/>
-                <circle cx="9" cy="4" r="1"/>
-                <circle cx="15" cy="4" r="1"/>
-                <path d="M10 2h4l1 1h-6l1-1z"/>
-            </svg>
+            @php
+                $sidebarLogo = \App\Models\Setting::get('store_logo');
+            @endphp
+            
+            @if($sidebarLogo && file_exists(public_path('images/settings/' . $sidebarLogo)))
+                <img src="{{ asset('images/settings/' . $sidebarLogo) }}" alt="Logo Toko">
+            @else
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #ffffff;">
+                    <path d="M2 5h20v3H2V5zm2 5h16v11H4V10zm2 2v7h4v-7H6zm6 0v7h4v-7h-4z"/>
+                    <circle cx="9" cy="4" r="1"/>
+                    <circle cx="15" cy="4" r="1"/>
+                    <path d="M10 2h4l1 1h-6l1-1z"/>
+                </svg>
+            @endif
         </div>
         <span>{{ \App\Models\Setting::get('store_name', 'POS APP') }}</span>
     </a>
 
     <ul class="nav flex-column mb-auto">
         
-        {{-- KATEGORI: UTAMA --}}
         <div class="menu-category">Utama</div>
         
         <li class="nav-item">
@@ -134,10 +126,8 @@
             </a>
         </li>
 
-        {{-- MENU KHUSUS ADMIN --}}
         @if(auth()->user()->role === 'admin')
         
-            {{-- KATEGORI: MASTER DATA --}}
             <div class="menu-category">Master Data</div>
             
             <li class="nav-item">
@@ -170,7 +160,6 @@
                 </a>
             </li>
 
-            {{-- KATEGORI: LAPORAN & SETTING --}}
             <div class="menu-category">Laporan & Setting</div>
             
             <li class="nav-item">

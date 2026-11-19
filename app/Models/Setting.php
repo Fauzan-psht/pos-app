@@ -8,10 +8,17 @@ class Setting extends Model
 {
     protected $fillable = ['key', 'value', 'group'];
 
-    // Helper statis untuk memanggil settingan
     public static function get($key, $default = null)
     {
         $setting = self::where('key', $key)->first();
         return $setting ? $setting->value : $default;
+    }
+
+    public static function set($key, $value, $group = null)
+    {
+        self::updateOrCreate(
+            ['key' => $key],
+            ['value' => $value, 'group' => $group]
+        );
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
@@ -30,6 +31,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
+    // =======================================================
+    // RUTE PROFIL & SETTING TOKO
+    // =======================================================
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::post('/store-settings', [ProfileController::class, 'updateStore'])->name('store.update');
+    // =======================================================
+
     // Resource Routes
     Route::resource('categories', CategoryController::class)->except('show');
     Route::resource('products', ProductController::class);
@@ -57,7 +66,7 @@ Route::middleware('auth')->group(function () {
     // Route Manajemen User (Hanya Admin)
     Route::resource('users', UserController::class)->except('show');
 
-    // Route Pengaturan Toko (Hanya Admin)
+    // Route Pengaturan Toko (Halaman Terpisah - Hanya Admin)
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 

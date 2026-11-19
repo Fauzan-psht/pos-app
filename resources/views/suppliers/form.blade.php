@@ -18,7 +18,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Contact Person (Opsional)</label>
+                    <label class="form-label">Contact Person</label>
                     <input type="text" name="contact_person" class="form-control @error('contact_person') is-invalid @enderror" value="{{ old('contact_person', $supplier->contact_person ?? '') }}">
                     @error('contact_person') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
@@ -30,7 +30,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Alamat (Opsional)</label>
+                    <label class="form-label">Alamat</label>
                     <textarea name="address" class="form-control @error('address') is-invalid @enderror" rows="3">{{ old('address', $supplier->address ?? '') }}</textarea>
                     @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>

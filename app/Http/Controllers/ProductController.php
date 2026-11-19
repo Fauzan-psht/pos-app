@@ -25,7 +25,7 @@ class ProductController extends Controller implements HasMiddleware
         // Eager loading 'category' untuk mencegah query N+1
         $query = Product::with('category');
 
-        // Filter Pencarian (Nama atau SKU)
+        // Filter Pencarian Server-Side (Jika dibutuhkan)
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
@@ -44,7 +44,7 @@ class ProductController extends Controller implements HasMiddleware
         }
 
         $products = $query->latest()->paginate(10)->withQueryString();
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::orderBy('name')->get(); // <-- Wajib untuk Modal Edit
 
         return view('products.index', compact('products', 'categories'));
     }
@@ -57,20 +57,28 @@ class ProductController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
+        // Validasi Server-Side
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'sku' => 'required|string|max:50|alpha_dash|unique:products,sku',
             'name' => 'required|string|max:150',
             'unit' => 'required|string|max:20',
-            'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0|gte:purchase_price',
+            'purchase_price' => 'required|string', // Ubah jadi string karena ada titik
+            'selling_price' => 'required|string',  // Ubah jadi string karena ada titik
             'stock' => 'required|integer|min:0',
             'min_stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active' => 'nullable|boolean',
-        ], [
-            'selling_price.gte' => 'Harga jual tidak boleh lebih rendah dari harga modal.',
         ]);
+
+        // HAPUS TITIK SEBELUM DISIMPAN
+        $validated['purchase_price'] = str_replace('.', '', $request->purchase_price);
+        $validated['selling_price'] = str_replace('.', '', $request->selling_price);
+
+        // Cek Harga Jual vs Harga Modal
+        if ($validated['selling_price'] < $validated['purchase_price']) {
+            return back()->withErrors(['selling_price' => 'Harga jual tidak boleh lebih rendah dari harga modal.'])->withInput();
+        }
 
         $validated['is_active'] = $request->boolean('is_active');
 
@@ -98,19 +106,27 @@ class ProductController extends Controller implements HasMiddleware
 
     public function update(Request $request, Product $product)
     {
+        // Validasi Server-Side
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'sku' => ['required', 'string', 'max:50', 'alpha_dash', Rule::unique('products')->ignore($product->id)],
             'name' => 'required|string|max:150',
             'unit' => 'required|string|max:20',
-            'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0|gte:purchase_price',
+            'purchase_price' => 'required|string',
+            'selling_price' => 'required|string',
             'min_stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active' => 'nullable|boolean',
-        ], [
-            'selling_price.gte' => 'Harga jual tidak boleh lebih rendah dari harga modal.',
         ]);
+
+        // HAPUS TITIK SEBELUM DISIMPAN
+        $validated['purchase_price'] = str_replace('.', '', $request->purchase_price);
+        $validated['selling_price'] = str_replace('.', '', $request->selling_price);
+
+        // Cek Harga Jual vs Harga Modal
+        if ($validated['selling_price'] < $validated['purchase_price']) {
+            return back()->withErrors(['selling_price' => 'Harga jual tidak boleh lebih rendah dari harga modal.'])->withInput();
+        }
 
         $validated['is_active'] = $request->boolean('is_active');
 

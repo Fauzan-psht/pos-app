@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - POS App</title>
+    <title>Login - {{ \App\Models\Setting::get('store_name', 'POS App') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -34,6 +34,13 @@
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
+            overflow: hidden; /* Biar gambar logo ga keluar kotak */
+        }
+        /* Style buat gambar logo upload-an */
+        .store-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .store-icon svg {
             width: 45px;
@@ -103,18 +110,32 @@
 </head>
 <body>
 
+    @php
+        // Ambil data dari database
+        $loginLogo = \App\Models\Setting::get('store_logo');
+        $loginStoreName = \App\Models\Setting::get('store_name', 'POS App');
+    @endphp
+
     <div class="card login-card">
         <div class="login-header text-center">
-            <!-- IKON MINIMARKET MODERN -->
+            
             <div class="store-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M2 5h20v3H2V5zm2 5h16v11H4V10zm2 2v7h4v-7H6zm6 0v7h4v-7h-4z"/>
-                    <circle cx="9" cy="4" r="1"/>
-                    <circle cx="15" cy="4" r="1"/>
-                    <path d="M10 2h4l1 1h-6l1-1z"/>
-                </svg>
+                @if($loginLogo && file_exists(public_path('images/settings/' . $loginLogo)))
+                    <!-- Kalau logo udah di-upload, tampilin gambarnya -->
+                    <img src="{{ asset('images/settings/' . $loginLogo) }}" alt="Logo Toko">
+                @else
+                    <!-- Kalau belum ada logo, tampilin SVG default -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M2 5h20v3H2V5zm2 5h16v11H4V10zm2 2v7h4v-7H6zm6 0v7h4v-7h-4z"/>
+                        <circle cx="9" cy="4" r="1"/>
+                        <circle cx="15" cy="4" r="1"/>
+                        <path d="M10 2h4l1 1h-6l1-1z"/>
+                    </svg>
+                @endif
             </div>
-            <h3>POS App</h3>
+            
+            <!-- Nama Toko Dinamis -->
+            <h3>{{ $loginStoreName }}</h3>
             <p>Silakan login untuk melanjutkan</p>
         </div>
         

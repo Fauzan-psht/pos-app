@@ -23,8 +23,15 @@ class PurchaseController extends Controller implements HasMiddleware
 
     public function index()
     {
+        // Eager loading biar ga berat
         $purchases = Purchase::with('supplier')->latest()->paginate(10);
-        return view('purchases.index', compact('purchases'));
+        
+        // TAMBAHAN: Data buat dropdown di modal Tambah Stok Masuk
+        $suppliers = Supplier::orderBy('name')->get();
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+
+        // Kirim semua variabel ke view
+        return view('purchases.index', compact('purchases', 'suppliers', 'products'));
     }
 
     public function create()

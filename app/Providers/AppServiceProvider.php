@@ -2,23 +2,19 @@
 
 namespace App\Providers;
 
+use App\Models\Product;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Pagination\Paginator; // <-- Penting untuk Pagination
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         // 1. Helper Rupiah
@@ -26,8 +22,16 @@ class AppServiceProvider extends ServiceProvider
             return "<?php echo 'Rp ' . number_format($expression, 0, ',', '.'); ?>";
         });
 
-        // 2. Memaksa Pagination menggunakan desain Bootstrap 5
-        // Ini mencegah munculnya panah raksasa di halaman tabel
+        // 2. Pagination Bootstrap 5
         Paginator::useBootstrapFive();
+
+        // 3. Kirim Data Stok Menipis ke Semua Halaman (Global)
+        View::composer('*', function ($view) {
+            $lowStockCount = Product::whereColumn('stock', '<=', 'min_stock')->count();
+            $lowStockProducts = Product::whereColumn('stock', '<=', 'min_stock')->take(5)->get();
+            
+            $view->with('globalLowStockCount', $lowStockCount);
+            $view->with('globalLowStockProducts', $lowStockProducts);
+        });
     }
 }
