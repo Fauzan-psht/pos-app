@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ImageType;
+use App\Services\ImageService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -36,34 +39,21 @@ class ProfileController extends Controller
     }
 
     // KHUSUS UPLOAD FOTO PROFIL (BERSIH DARI DEBUGGING)
-    public function updatePhoto(Request $request)
+    public function updatePhoto(Request $request, ImageService $imageService): RedirectResponse
     {
-        $request->validate([
-            'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+        $validated = $request->validate([
+            'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120|dimensions:max_width=6000,max_height=6000',
+            'image_type' => 'required|in:'.ImageType::Profile->value,
         ]);
 
         $user = auth()->user();
+        $oldPhoto = DB::table('users')->where('id', $user->id)->value('photo');
+        $newPhoto = $imageService->store($validated['photo'], ImageType::Profile);
 
-        try {
-            // 1. Hapus foto lama
-            $oldPhoto = DB::table('users')->where('id', $user->id)->value('photo');
-            if ($oldPhoto && file_exists(public_path('images/profiles/' . $oldPhoto))) {
-                unlink(public_path('images/profiles/' . $oldPhoto));
-            }
+        DB::table('users')->where('id', $user->id)->update(['photo' => $newPhoto]);
+        $imageService->delete($oldPhoto, ImageType::Profile);
 
-            // 2. Upload foto baru
-            $file = $request->file('photo');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('images/profiles'), $filename);
-
-            // 3. Update database pake Query Builder
-            DB::table('users')->where('id', $user->id)->update(['photo' => $filename]);
-
-            return back()->with('success', 'Foto profil berhasil diperbarui!');
-
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal upload: ' . $e->getMessage());
-        }
+        return back()->with('success', 'Foto profil berhasil diperbarui!');
     }
 
     // Update Toko (Logo & Nama)

@@ -21,9 +21,10 @@ class SettingController extends Controller implements HasMiddleware
     public function index(ImageService $imageService): View
     {
         $settings = Setting::all()->pluck('value', 'key');
+        $profilePhotoUrl = $imageService->url(auth()->user()->photo, ImageType::Profile);
         $storeLogoUrl = $imageService->url($settings['store_logo'] ?? null, ImageType::StoreLogo);
 
-        return view('settings.index', compact('settings', 'storeLogoUrl'));
+        return view('settings.index', compact('settings', 'profilePhotoUrl', 'storeLogoUrl'));
     }
 
     public function update(Request $request, ImageService $imageService): RedirectResponse

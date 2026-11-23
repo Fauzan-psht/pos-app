@@ -114,15 +114,16 @@
         // Ambil data dari database
         $loginLogo = \App\Models\Setting::get('store_logo');
         $loginStoreName = \App\Models\Setting::get('store_name', 'POS App');
+        $loginLogoUrl = app(\App\Services\ImageService::class)->url($loginLogo, \App\Enums\ImageType::StoreLogo);
     @endphp
 
     <div class="card login-card">
         <div class="login-header text-center">
             
             <div class="store-icon">
-                @if($loginLogo && file_exists(public_path('images/settings/' . $loginLogo)))
+                @if($loginLogoUrl)
                     <!-- Kalau logo udah di-upload, tampilin gambarnya -->
-                    <img src="{{ asset('images/settings/' . $loginLogo) }}" alt="Logo Toko">
+                    <img src="{{ $loginLogoUrl }}" alt="Logo Toko">
                 @else
                     <!-- Kalau belum ada logo, tampilin SVG default -->
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

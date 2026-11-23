@@ -88,10 +88,11 @@
         <div class="logo-box">
             @php
                 $sidebarLogo = \App\Models\Setting::get('store_logo');
+                $sidebarLogoUrl = app(\App\Services\ImageService::class)->url($sidebarLogo, \App\Enums\ImageType::StoreLogo);
             @endphp
             
-            @if($sidebarLogo && file_exists(public_path('images/settings/' . $sidebarLogo)))
-                <img src="{{ asset('images/settings/' . $sidebarLogo) }}" alt="Logo Toko">
+            @if($sidebarLogoUrl)
+                <img id="sidebar-store-logo" src="{{ $sidebarLogoUrl }}" alt="Logo Toko">
             @else
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #ffffff;">
                     <path d="M2 5h20v3H2V5zm2 5h16v11H4V10zm2 2v7h4v-7H6zm6 0v7h4v-7h-4z"/>

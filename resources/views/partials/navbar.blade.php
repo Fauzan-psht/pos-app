@@ -49,9 +49,11 @@
 
             <div class="dropdown">
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" data-bs-toggle="dropdown">
-                    <!-- FOTO PROFIL: LANGSUNG PAKE ASSET TANPA FILE_EXISTS -->
-                    @if(auth()->user()->photo)
-                        <img src="{{ asset('images/profiles/' . auth()->user()->photo) }}?t={{ time() }}" class="rounded-circle object-fit-cover me-2" style="width: 35px; height: 35px; border: 2px solid #0d6efd;">
+                    @php
+                        $profilePhotoUrl = app(\App\Services\ImageService::class)->url(auth()->user()->photo, \App\Enums\ImageType::Profile);
+                    @endphp
+                    @if($profilePhotoUrl)
+                        <img id="navbar-profile-photo" src="{{ $profilePhotoUrl }}?t={{ time() }}" class="rounded-circle object-fit-cover me-2" style="width: 35px; height: 35px; border: 2px solid #0d6efd;" alt="Foto profil {{ auth()->user()->name }}">
                     @else
                         <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0D6EFD&color=fff" class="rounded-circle me-2" style="width: 35px; height: 35px;">
                     @endif

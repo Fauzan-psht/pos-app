@@ -13,6 +13,49 @@
         </div>
     </div>
 
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-person-circle me-2"></i>Foto Profil Admin</h5>
+        </div>
+        <div class="card-body p-4">
+            <form id="profile-photo-form" action="{{ route('profile.photo') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="image_type" value="{{ \App\Enums\ImageType::Profile->value }}">
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-3 text-center">
+                        <img
+                            id="admin-photo-preview"
+                            src="{{ $profilePhotoUrl ?? '' }}"
+                            alt="Pratinjau foto profil admin"
+                            class="rounded-circle shadow-sm {{ $profilePhotoUrl ? '' : 'd-none' }}"
+                            style="width: 110px; height: 110px; object-fit: cover;"
+                        >
+                        <div id="admin-photo-placeholder" class="p-4 bg-light rounded border text-muted {{ $profilePhotoUrl ? 'd-none' : '' }}">
+                            Belum ada foto admin
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <label for="admin-photo" class="form-label fw-bold">Pilih Foto Admin</label>
+                        <input
+                            type="file"
+                            id="admin-photo"
+                            name="photo"
+                            class="form-control @error('photo') is-invalid @enderror"
+                            accept="image/jpeg,image/png,image/webp"
+                            required
+                        >
+                        @error('photo') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <small class="form-text text-muted d-block mb-3">JPG, PNG, atau WebP, maksimal 5 MB.</small>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i> Simpan Foto Admin
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- FORM PENGATURAN (Layout 2 Kolom) -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
@@ -54,7 +97,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="store-logo" class="form-label fw-bold">Logo Toko untuk Struk</label>
+                    <label for="store-logo" class="form-label fw-bold">Logo Toko</label>
                     <input type="hidden" name="image_type" value="{{ \App\Enums\ImageType::StoreLogo->value }}">
                     <div class="row g-3 align-items-center">
                         <div class="col-md-3 text-center">
@@ -77,7 +120,7 @@
                                 class="form-control @error('store_logo') is-invalid @enderror"
                                 accept="image/jpeg,image/png,image/webp"
                             >
-                            <small class="form-text text-muted">PNG, JPG, atau WebP, maksimal 5 MB. Untuk hasil cetak yang jelas, gunakan logo kontras tinggi.</small>
+                            <small class="form-text text-muted">Logo ini tampil di halaman login, sidebar, dan struk. PNG, JPG, atau WebP, maksimal 5 MB.</small>
                             @error('store_logo') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
@@ -97,6 +140,18 @@
 
 @push('scripts')
     <script>
+        document.getElementById('admin-photo').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const preview = document.getElementById('admin-photo-preview');
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('d-none');
+            document.getElementById('admin-photo-placeholder').classList.add('d-none');
+        });
+
         document.getElementById('store-logo').addEventListener('change', function (event) {
             const file = event.target.files[0];
             if (!file) {
