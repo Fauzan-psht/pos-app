@@ -30,7 +30,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    
+
     // =======================================================
     // RUTE PROFIL & SETTING TOKO
     // =======================================================
@@ -44,11 +44,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('products', ProductController::class);
     Route::resource('customers', CustomerController::class);
     Route::resource('suppliers', SupplierController::class)->except('show');
-    
+
     // Route Stok Masuk
     Route::resource('purchases', PurchaseController::class)->only(['index', 'create', 'store', 'show']);
 
     // Route Kasir & Riwayat Transaksi
+    Route::get('/sales/products', [SaleController::class, 'products'])->name('sales.products');
     Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'show']);
 
     // Route Detail Transaksi
@@ -59,7 +60,7 @@ Route::middleware('auth')->group(function () {
 
     // Route Laporan Penjualan (Hanya Admin)
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    
+
     // Route Export Excel (BONUS B1)
     Route::get('/reports/export', [ReportController::class, 'exportExcel'])->name('reports.export');
 

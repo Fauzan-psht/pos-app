@@ -6,6 +6,7 @@
     <title>Struk - {{ $sale->invoice_number }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { 
             font-family: 'Courier New', Courier, monospace; 
@@ -24,6 +25,16 @@
             padding: 15px; 
             box-shadow: 0 0 10px rgba(0,0,0,0.1); 
             font-size: 12px;
+        }
+        .receipt-logo {
+            display: block;
+            max-width: 40mm;
+            max-height: 20mm;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            filter: grayscale(100%);
+            margin: 0 auto 6px;
         }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
@@ -73,6 +84,15 @@
             @endif
 
             <div class="text-center">
+                @php
+                    $storeLogoUrl = app(\App\Services\ImageService::class)->url(
+                        \App\Models\Setting::get('store_logo'),
+                        \App\Enums\ImageType::StoreLogo
+                    );
+                @endphp
+                @if($storeLogoUrl)
+                    <img src="{{ $storeLogoUrl }}" alt="Logo toko" class="receipt-logo">
+                @endif
                 <h3 class="mb-0" style="margin: 0 0 5px 0; font-size: 16px;">{{ \App\Models\Setting::get('store_name', 'Toko POS') }}</h3>
                 <p style="font-size: 11px; margin: 2px 0;">{{ \App\Models\Setting::get('store_address', 'Alamat Toko') }}</p>
                 <p style="font-size: 11px; margin: 2px 0;">Telp: {{ \App\Models\Setting::get('store_phone', '-') }}</p>
@@ -159,5 +179,17 @@
 
     <!-- Bootstrap JS untuk Modal -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @if (session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: @json(session('success')),
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+        </script>
+    @endif
 </body>
 </html>

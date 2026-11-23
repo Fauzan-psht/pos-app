@@ -166,6 +166,14 @@ class PosTest extends TestCase
 
         $sale = Sale::first();
         $response->assertRedirect('/sales/'.$sale->id);
+        $response->assertSessionHas('success', 'Transaksi berhasil disimpan.');
+
+        $this->get('/sales/'.$sale->id)
+            ->assertOk()
+            ->assertSee('Berhasil!', false)
+            ->assertSee('Transaksi berhasil disimpan.')
+            ->assertSee($sale->invoice_number)
+            ->assertSee('Cetak Struk');
 
         $this->assertEquals(19000, $sale->total);
         $this->assertEquals(19000, $sale->paid_amount);
@@ -261,7 +269,7 @@ class PosTest extends TestCase
 
         $response->assertOk()
             ->assertSee('qty-stepper')
-            ->assertSee('step="0.001"', false);
+            ->assertSee("min=\"' + minimumQuantity + '\" max=\"' + item.maxStock + '\" step=\"' + quantityStep + '\"", false);
     }
 
     public function test_kasir_melihat_stok_produk_tanpa_nol_desimal_tidak_terpakai()
@@ -269,11 +277,15 @@ class PosTest extends TestCase
         $kasir = $this->createUser('kasir');
         $this->createProduct(50);
 
-        $response = $this->actingAs($kasir)->get('/sales/create');
+        $response = $this->actingAs($kasir)->getJson('/sales/products');
 
         $response->assertOk()
-            ->assertSee('Stok: 50</small>', false)
-            ->assertDontSee('Stok: 50.000', false);
+            ->assertJsonPath('data.0.stock', 50);
+
+        $view = $this->actingAs($kasir)->get('/sales/create');
+
+        $view->assertOk()
+            ->assertSee("Number(product.stock).toLocaleString('id-ID', { maximumFractionDigits: 3 })", false);
     }
 
     public function test_form_produk_menggunakan_dropdown_satuan()

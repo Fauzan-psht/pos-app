@@ -99,8 +99,6 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const loadingOverlay = document.getElementById('loading-overlay');
-
             // Dark Mode
             const themeToggleBtn = document.getElementById('theme-toggle-pos');
             const themeIcon = document.getElementById('theme-icon-pos');
@@ -122,20 +120,12 @@
                 });
             }
 
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    if (submitBtn) { submitBtn.disabled = true; }
-                    loadingOverlay.style.display = 'flex';
-                });
-            });
-
             @if(session('success'))
                 Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", showConfirmButton: false, timer: 2000 });
             @endif
         });
     </script>
     @stack('scripts')
+    @include('partials.form-submit-feedback')
 </body>
 </html>

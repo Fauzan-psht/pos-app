@@ -6,9 +6,12 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Support\DocumentNumber;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Yajra\DataTables\Facades\DataTables;
 
 class SaleController extends Controller
 {
@@ -29,6 +32,19 @@ class SaleController extends Controller
             $query->where('invoice_number', 'like', '%'.$request->invoice.'%');
         }
 
+        if ($request->ajax()) {
+            return DataTables::of($query)
+                ->editColumn('sale_date', fn (Sale $sale) => Carbon::parse($sale->sale_date)->format('d/m/Y H:i'))
+                ->addColumn('customer_name', fn (Sale $sale) => $sale->customer?->name ?? 'Umum')
+                ->editColumn('total', fn (Sale $sale) => number_format((float) $sale->total, 0, ',', '.'))
+                ->editColumn('status', fn (Sale $sale) => $sale->status === 'paid'
+                    ? '<span class="badge bg-success">Sukses</span>'
+                    : '<span class="badge bg-danger">Dibatalkan</span>')
+                ->addColumn('action', fn (Sale $sale) => '<a href="'.route('sales.show', $sale->id).'" class="btn btn-sm btn-outline-secondary" title="Detail"><i class="bi bi-eye"></i> Detail</a>')
+                ->rawColumns(['status', 'action'])
+                ->make(true);
+        }
+
         $sales = $query->paginate(10)->withQueryString();
 
         return view('sales.index', compact('sales'));
@@ -36,10 +52,41 @@ class SaleController extends Controller
 
     public function create()
     {
-        $products = Product::where('is_active', true)->where('stock', '>', 0)->orderBy('name')->get();
+        // AMBIL DATA PRODUK & PELANGGAN
         $customers = Customer::orderBy('name')->get();
 
-        return view('sales.create', compact('products', 'customers'));
+        return view('sales.create', compact('customers'));
+    }
+
+    public function products(Request $request)
+    {
+        $search = trim((string) $request->input('search', ''));
+
+        $products = Product::query()
+            ->where('is_active', true)
+            ->where('stock', '>', 0)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('sku', 'like', '%'.$search.'%');
+                });
+            })
+            ->orderBy('name')
+            ->paginate(10);
+
+        return response()->json([
+            'data' => $products->getCollection()->map(fn (Product $product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'unit' => $product->unit,
+                'selling_price' => (float) $product->selling_price,
+                'stock' => (float) $product->stock,
+                'image_url' => $product->image ? Storage::disk('public')->url($product->image) : null,
+            ]),
+            'current_page' => $products->currentPage(),
+            'last_page' => $products->lastPage(),
+        ]);
     }
 
     public function store(Request $request)
@@ -140,7 +187,7 @@ class SaleController extends Controller
                 return $newSale;
             });
 
-            // BERHASIL: Arahkan ke halaman Struk (sales.show)
+            // BERHASIL: Arahkan ke halaman Struk
             return redirect()->route('sales.show', $sale->id)->with('success', 'Transaksi berhasil disimpan.');
 
         } catch (ValidationException $e) {
@@ -164,9 +211,6 @@ class SaleController extends Controller
         return view('sales.receipt', compact('sale'));
     }
 
-    // ==========================================
-    // FUNGSI DETAIL TRANSAKSI (Untuk tombol Ikon Mata)
-    // ==========================================
     public function detail(Sale $sale)
     {
         // Proteksi: Kasir tidak boleh lihat transaksi kasir lain
@@ -179,37 +223,31 @@ class SaleController extends Controller
         return view('sales.detail', compact('sale'));
     }
 
-    // ==========================================
-    // BONUS B2: FUNGSI VOID TRANSAKSI
-    // ==========================================
     public function void(Request $request, Sale $sale)
     {
-        // 1. Aturan Modul: Hanya Admin yang bisa akses
+        // 1. Hanya Admin yang bisa akses
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Akses ditolak. Hanya Admin yang bisa membatalkan transaksi.');
         }
 
-        // 2. Aturan Modul: Cek jika transaksi sudah di-void sebelumnya
+        // 2. Cek jika sudah void
         if ($sale->status === 'void') {
             return back()->with('error', 'Transaksi ini sudah dibatalkan sebelumnya.');
         }
 
-        // 3. Aturan Modul: Admin mengisi alasan
+        // 3. Validasi alasan
         $request->validate([
             'void_reason' => 'required|string|max:255',
         ]);
 
-        // 4. Aturan Modul: Proses dalam DB::transaction()
+        // 4. Proses DB Transaction
         try {
             DB::transaction(function () use ($sale, $request) {
-
-                // a. Ubah status jadi void dan simpan alasan
                 $sale->update([
                     'status' => 'void',
                     'note' => 'VOID: '.$request->void_reason,
                 ]);
 
-                // b. Kembalikan stok dengan increment
                 foreach ($sale->items as $item) {
                     Product::where('id', $item->product_id)->increment('stock', $item->quantity);
                 }

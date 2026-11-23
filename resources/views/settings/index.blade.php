@@ -16,7 +16,7 @@
     <!-- FORM PENGATURAN (Layout 2 Kolom) -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-            <form action="{{ route('settings.update') }}" method="POST">
+            <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -53,6 +53,36 @@
                     </div>
                 </div>
 
+                <div class="mb-4">
+                    <label for="store-logo" class="form-label fw-bold">Logo Toko untuk Struk</label>
+                    <input type="hidden" name="image_type" value="{{ \App\Enums\ImageType::StoreLogo->value }}">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-3 text-center">
+                            <img
+                                id="store-logo-preview"
+                                src="{{ $storeLogoUrl ?? '' }}"
+                                alt="Pratinjau logo toko"
+                                class="img-thumbnail {{ $storeLogoUrl ? '' : 'd-none' }}"
+                                style="max-width: 180px; max-height: 90px; object-fit: contain;"
+                            >
+                            <div id="store-logo-placeholder" class="p-4 bg-light rounded border text-muted {{ $storeLogoUrl ? 'd-none' : '' }}">
+                                Belum ada logo
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <input
+                                type="file"
+                                id="store-logo"
+                                name="store_logo"
+                                class="form-control @error('store_logo') is-invalid @enderror"
+                                accept="image/jpeg,image/png,image/webp"
+                            >
+                            <small class="form-text text-muted">PNG, JPG, atau WebP, maksimal 5 MB. Untuk hasil cetak yang jelas, gunakan logo kontras tinggi.</small>
+                            @error('store_logo') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+                </div>
+
                 <hr class="my-4">
 
                 <div class="d-flex justify-content-end">
@@ -64,3 +94,19 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.getElementById('store-logo').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const preview = document.getElementById('store-logo-preview');
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('d-none');
+            document.getElementById('store-logo-placeholder').classList.add('d-none');
+        });
+    </script>
+@endpush

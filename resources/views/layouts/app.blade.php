@@ -22,6 +22,13 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $.extend(true, $.fn.dataTable.defaults, {
+            dom: "<'row mb-2'<'col-12'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row mt-2 align-items-center'<'col-12 col-md-6'i><'col-12 col-md-6'p>>"
+        });
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -60,6 +67,28 @@
             background-color: #2d2d3f;
             color: #fff;
             border: 1px solid #3f3f5a;
+        }
+        table.dataTable thead > tr > th[class*="sorting"]::before,
+        table.dataTable thead > tr > th[class*="sorting"]::after {
+            display: none !important;
+        }
+        .dataTables_wrapper .dataTables_filter {
+            width: 100%;
+            float: none !important;
+            margin-bottom: 0.75rem;
+            text-align: left !important;
+        }
+        .dataTables_wrapper .dataTables_filter label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 24rem;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            flex: 1;
+            min-width: 0;
+            margin-left: 0 !important;
         }
     </style>
 </head>
